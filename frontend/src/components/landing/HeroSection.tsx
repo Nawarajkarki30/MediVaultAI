@@ -15,7 +15,7 @@ export const HeroSection: React.FC = () => {
           {/* Left Column: Value Proposition & Call to Actions */}
           <div className="lg:col-span-6 flex flex-col items-start text-left">
             {/* Eyebrow badge matching wireframe */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-50 border border-brand-200/90 text-brand-700 text-xs sm:text-sm font-semibold mb-6 shadow-xs">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-50 border border-brand-200/90 text-brand-700 text-xs sm:text-sm font-semibold mb-6 shadow-sm">
               <div className="w-4 h-4 rounded-full bg-brand-500 text-white flex items-center justify-center flex-shrink-0">
                 <CheckCircle2 className="w-3.5 h-3.5 fill-current" />
               </div>

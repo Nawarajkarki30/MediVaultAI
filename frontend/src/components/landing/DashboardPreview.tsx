@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   FileText,
   Users,
@@ -20,6 +20,26 @@ export const DashboardPreview: React.FC = () => {
   const [selectedReport, setSelectedReport] = useState<MockReport | null>(null);
   const [explanationLanguage, setExplanationLanguage] = useState<'en' | 'ne'>('en');
   const [activeTab, setActiveTab] = useState<'dashboard' | 'reports'>('dashboard');
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Focus close button when modal opens
+  useEffect(() => {
+    if (selectedReport) {
+      closeButtonRef.current?.focus();
+    }
+  }, [selectedReport]);
+
+  // Handle Escape key to close the explanation preview modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.key === 'Escape' || event.key === 'Esc') && selectedReport) {
+        setSelectedReport(null);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedReport]);
 
   return (
     <div className="relative w-full max-w-2xl mx-auto lg:max-w-none">
@@ -57,7 +77,7 @@ export const DashboardPreview: React.FC = () => {
             <div>
               {/* Sidebar Logo */}
               <div className="flex items-center gap-2 mb-6 px-2">
-                <div className="w-6 h-6 bg-brand-500 rounded-lg flex items-center justify-center text-white shadow-xs">
+                <div className="w-6 h-6 bg-brand-500 rounded-lg flex items-center justify-center text-white shadow-sm">
                   <span className="text-xs font-bold leading-none">+</span>
                 </div>
                 <span className="text-sm font-bold tracking-tight text-brand-navy">
@@ -70,7 +90,7 @@ export const DashboardPreview: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('dashboard')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl transition-colors ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-semibold rounded-xl transition-colors min-h-[38px] ${
                     activeTab === 'dashboard'
                       ? 'bg-brand-100/70 text-brand-600 font-bold'
                       : 'text-brand-muted hover:text-brand-navy hover:bg-slate-100/70'
@@ -83,7 +103,7 @@ export const DashboardPreview: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('reports')}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl transition-colors ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium rounded-xl transition-colors min-h-[38px] ${
                     activeTab === 'reports'
                       ? 'bg-brand-100/70 text-brand-600 font-bold'
                       : 'text-brand-muted hover:text-brand-navy hover:bg-slate-100/70'
@@ -93,22 +113,22 @@ export const DashboardPreview: React.FC = () => {
                   <span>My Reports</span>
                 </button>
 
-                <div className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-brand-muted rounded-xl cursor-default opacity-80">
+                <div className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-brand-muted rounded-xl cursor-default opacity-80 min-h-[38px]">
                   <Sparkles className="w-4 h-4 text-slate-400" />
                   <span>AI Assistant</span>
                 </div>
 
-                <div className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-brand-muted rounded-xl cursor-default opacity-80">
+                <div className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-brand-muted rounded-xl cursor-default opacity-80 min-h-[38px]">
                   <Users className="w-4 h-4 text-slate-400" />
                   <span>Family Sharing</span>
                 </div>
 
-                <div className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-brand-muted rounded-xl cursor-default opacity-80">
+                <div className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-brand-muted rounded-xl cursor-default opacity-80 min-h-[38px]">
                   <UserCheck className="w-4 h-4 text-slate-400" />
                   <span>Caregivers</span>
                 </div>
 
-                <div className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-brand-muted rounded-xl cursor-default opacity-80">
+                <div className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-brand-muted rounded-xl cursor-default opacity-80 min-h-[38px]">
                   <User className="w-4 h-4 text-slate-400" />
                   <span>Profile</span>
                 </div>
@@ -153,7 +173,7 @@ export const DashboardPreview: React.FC = () => {
                       <FileText className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                  <span className="text-[11px] font-medium text-brand-muted mt-1 leading-tight">
+                  <span className="text-[11px] font-medium text-brand-muted mt-1 leading-tight break-words">
                     Medical Reports
                   </span>
                 </div>
@@ -166,7 +186,7 @@ export const DashboardPreview: React.FC = () => {
                       <Users className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                  <span className="text-[11px] font-medium text-brand-muted mt-1 leading-tight">
+                  <span className="text-[11px] font-medium text-brand-muted mt-1 leading-tight break-words">
                     Family Members
                   </span>
                 </div>
@@ -179,7 +199,7 @@ export const DashboardPreview: React.FC = () => {
                       <UserCheck className="w-3.5 h-3.5" />
                     </div>
                   </div>
-                  <span className="text-[11px] font-medium text-brand-muted mt-1 leading-tight">
+                  <span className="text-[11px] font-medium text-brand-muted mt-1 leading-tight break-words">
                     Caregivers
                   </span>
                 </div>
@@ -192,7 +212,7 @@ export const DashboardPreview: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setActiveTab('reports')}
-                    className="text-xs font-semibold text-brand-500 hover:text-brand-600 hover:underline"
+                    className="text-xs font-semibold text-brand-500 hover:text-brand-600 hover:underline min-h-[32px] px-2 flex items-center"
                   >
                     View All
                   </button>
@@ -204,7 +224,7 @@ export const DashboardPreview: React.FC = () => {
                       key={report.id}
                       type="button"
                       onClick={() => setSelectedReport(report)}
-                      className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-brand-200 hover:bg-brand-50/40 transition-all text-left group"
+                      className="w-full flex items-center justify-between p-2.5 rounded-xl border border-slate-100 hover:border-brand-200 hover:bg-brand-50/40 transition-all text-left group min-h-[44px]"
                       title="Click to view simulated AI explanation"
                     >
                       <div className="flex items-center gap-2.5">
@@ -246,19 +266,25 @@ export const DashboardPreview: React.FC = () => {
         </div>
       </div>
 
-      {/* Simulated AI Explanation Modal (Interactive Polish) */}
+      {/* Simulated AI Explanation Modal (Interactive Polish & A11y) */}
       {selectedReport && (
         <div
+          id="explanation-modal"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-brand-navy/40 backdrop-blur-sm animate-fade-in"
           role="dialog"
           aria-modal="true"
           aria-labelledby="explanation-dialog-title"
+          onClick={() => setSelectedReport(null)}
         >
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-brand-border relative">
+          <div
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-brand-border relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
+              ref={closeButtonRef}
               type="button"
               onClick={() => setSelectedReport(null)}
-              className="absolute top-4 right-4 p-1.5 text-slate-400 hover:text-brand-navy rounded-lg hover:bg-slate-100"
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-brand-navy rounded-lg hover:bg-slate-100 min-h-[44px] min-w-[44px] flex items-center justify-center focus-visible:outline-brand-500"
               aria-label="Close modal"
             >
               <X className="w-5 h-5" />
@@ -287,7 +313,7 @@ export const DashboardPreview: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setExplanationLanguage('en')}
-                  className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-colors ${
+                  className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-colors min-h-[36px] flex items-center ${
                     explanationLanguage === 'en'
                       ? 'bg-brand-500 text-white'
                       : 'text-brand-navy hover:bg-slate-200/70'
@@ -298,7 +324,7 @@ export const DashboardPreview: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setExplanationLanguage('ne')}
-                  className={`px-2.5 py-1 text-xs rounded-lg font-semibold transition-colors ${
+                  className={`px-3 py-1.5 text-xs rounded-lg font-semibold transition-colors min-h-[36px] flex items-center ${
                     explanationLanguage === 'ne'
                       ? 'bg-brand-500 text-white'
                       : 'text-brand-navy hover:bg-slate-200/70'
@@ -347,7 +373,7 @@ export const DashboardPreview: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSelectedReport(null)}
-                className="px-4 py-2 bg-brand-500 text-white text-xs font-semibold rounded-xl hover:bg-brand-600"
+                className="px-5 py-2.5 bg-brand-500 text-white text-xs font-semibold rounded-xl hover:bg-brand-600 min-h-[44px] focus-visible:outline-brand-500"
               >
                 Close Preview
               </button>

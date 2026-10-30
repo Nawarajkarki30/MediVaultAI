@@ -39,3 +39,4 @@ coverage
 # Prisma generated artifacts
 prisma/migrations/dev
 generated
+

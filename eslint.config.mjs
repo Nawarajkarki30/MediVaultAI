@@ -10,6 +10,7 @@ export default tseslint.config(
       '**/node_modules/**',
       '**/coverage/**',
       'database/prisma/**',
+      'scripts/**',
       '**/*.config.js',
       '**/*.config.ts',
       '**/*.config.mjs',

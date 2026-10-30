@@ -25,7 +25,7 @@ export const KeyBenefits: React.FC = () => {
       aria-label="Key Benefits"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Subtle section label */}
+        {/* Section label */}
         <div className="flex items-center justify-between mb-8 pb-3 border-b border-slate-100">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-brand-500">
@@ -49,7 +49,7 @@ export const KeyBenefits: React.FC = () => {
             >
               <div>
                 {/* Circular Icon Container matching wireframe */}
-                <div className="w-13 h-13 w-12 h-12 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center mb-5 group-hover:bg-brand-100/80 group-hover:scale-105 transition-all">
+                <div className="w-12 h-12 rounded-full bg-brand-50 border border-brand-100 flex items-center justify-center mb-5 group-hover:bg-brand-100/80 group-hover:scale-105 transition-all">
                   {getIcon(benefit.iconName)}
                 </div>
 

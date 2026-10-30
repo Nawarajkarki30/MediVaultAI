@@ -1,0 +1,107 @@
+{
+  "viewports": [
+    {
+      "name": "mobile-320px",
+      "width": 320,
+      "height": 800,
+      "overflow": false,
+      "scrollWidth": 320
+    },
+    {
+      "name": "mobile-375px",
+      "width": 375,
+      "height": 812,
+      "overflow": false,
+      "scrollWidth": 375
+    },
+    {
+      "name": "mobile-390px",
+      "width": 390,
+      "height": 844,
+      "overflow": false,
+      "scrollWidth": 390
+    },
+    {
+      "name": "mobile-430px",
+      "width": 430,
+      "height": 932,
+      "overflow": false,
+      "scrollWidth": 430
+    },
+    {
+      "name": "tablet-768px",
+      "width": 768,
+      "height": 1024,
+      "overflow": false,
+      "scrollWidth": 768
+    },
+    {
+      "name": "tablet-1024px",
+      "width": 1024,
+      "height": 768,
+      "overflow": false,
+      "scrollWidth": 1024
+    },
+    {
+      "name": "desktop-1280px",
+      "width": 1280,
+      "height": 900,
+      "overflow": false,
+      "scrollWidth": 1280
+    },
+    {
+      "name": "desktop-1440px",
+      "width": 1440,
+      "height": 900,
+      "overflow": false,
+      "scrollWidth": 1440
+    },
+    {
+      "name": "desktop-1920px",
+      "width": 1920,
+      "height": 1080,
+      "overflow": false,
+      "scrollWidth": 1920
+    }
+  ],
+  "interactions": [
+    {
+      "interaction": "Open Report Preview Modal",
+      "success": true
+    },
+    {
+      "interaction": "Nepali Language Toggle",
+      "success": true
+    },
+    {
+      "interaction": "Close Modal via Close Button",
+      "success": true
+    },
+    {
+      "interaction": "Close Modal via Escape Key",
+      "success": true
+    },
+    {
+      "interaction": "Navigate to /auth/login",
+      "success": true
+    },
+    {
+      "interaction": "Browser Back Navigation",
+      "success": true
+    },
+    {
+      "interaction": "Get Started -> /auth/register",
+      "success": true
+    },
+    {
+      "interaction": "Open Mobile Menu Drawer",
+      "success": true
+    },
+    {
+      "interaction": "Dismiss Mobile Drawer via Escape",
+      "success": true
+    }
+  ],
+  "consoleErrors": [],
+  "overflows": []
+}
