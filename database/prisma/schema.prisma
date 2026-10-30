@@ -1,0 +1,25 @@
+// MediVault AI — Database Schema
+// Phase 1: Foundation Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Baseline system health and version audit model.
+/// Full domain entities (Users, MedicalDocuments, FamilyPermissions, AIExplanations, Caregivers, AuditLogs)
+/// are planned for Phase 2 and documented in docs/DATABASE.md.
+model SystemHealth {
+  id        String   @id @default(uuid())
+  service   String   @unique @default("medivault-backend")
+  status    String   @default("HEALTHY")
+  version   String   @default("0.1.0")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("system_health")
+}

@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --brand-primary: #2675f5;
+    --brand-navy: #0b1b49;
+    --brand-bg: #f8fbff;
+    --brand-surface: #ffffff;
+    --brand-muted: #526482;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--brand-bg);
+    color: var(--brand-navy);
+    overflow-x: hidden;
+  }
+
+  /* Accessible focus outlines */
+  :focus-visible {
+    outline: 2px solid #2675f5;
+    outline-offset: 2px;
+  }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Subtle dot grid pattern for hero background */
+.bg-grid-subtle {
+  background-size: 24px 24px;
+  background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+}

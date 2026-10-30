@@ -1,0 +1,6 @@
+node_modules
+dist
+build
+.tsbuildinfo
+package-lock.json
+database/prisma/migrations

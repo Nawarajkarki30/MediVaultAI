@@ -1,0 +1,37 @@
+{
+  "name": "medivault-ai",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MediVault AI - AI-powered personal healthcare assistance platform",
+  "workspaces": [
+    "frontend",
+    "backend",
+    "database"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=@medivault/backend\" \"npm run dev --workspace=@medivault/frontend\"",
+    "dev:frontend": "npm run dev --workspace=@medivault/frontend",
+    "dev:backend": "npm run dev --workspace=@medivault/backend",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "prisma:generate": "npm run generate --workspace=@medivault/database",
+    "prisma:migrate": "npm run migrate:dev --workspace=@medivault/database"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.20.0",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.20.1",
+    "globals": "^15.15.0",
+    "prettier": "^3.5.2",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.24.1"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
