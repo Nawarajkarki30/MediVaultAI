@@ -1,6 +1,6 @@
-# MediVault AI — Document Access Control & Authorization Model
+# MediVault AI — Document Access Control & Authorization Model (Revised)
 
-**Document Version:** 1.0.0  
+**Document Version:** 2.0.0 (Post-Security Review Revisions)  
 **Phase:** Phase 2C.2 Architecture & Planning  
 **Classification:** Core Security Specification  
 
@@ -8,10 +8,10 @@
 
 ## 1. Authorization Philosophy & Core Axioms
 
-In healthcare systems, Broken Object Level Authorization (BOLA / OWASP API1:2023) is the primary vulnerability leading to large-scale data breaches. MediVault AI enforces an uncompromising authorization model:
+In healthcare architectures, Broken Object Level Authorization (BOLA / OWASP API1:2023) is the single most prevalent cause of catastrophic data exposure. MediVault AI enforces an uncompromising authorization policy:
 
-1. **Patient Sovereignty:** A medical document is owned by exactly one authenticated patient (`ownerId`).
-2. **Explicit Verification on Every Call:** Every read, stream, metadata edit, download, and deletion request verifies identity and ownership server-side.
+1. **Patient Sovereignty:** A medical document is owned strictly by the authenticated patient (`ownerId`).
+2. **Mandatory Server-Side Enforcement:** Every read, stream, metadata update, download, and deletion request verifies identity and ownership server-side.
 3. **No Client-Asserted Ownership:** The backend never trusts or accepts an `ownerId`, `patientId`, or filesystem path from request bodies, headers, or query parameters.
 4. **Information-Free Denials:** Unauthorized requests return **HTTP `404 Not Found`** instead of `403 Forbidden`, preventing attackers from enumerating the existence of document IDs belonging to other patients.
 
@@ -27,7 +27,6 @@ sequenceDiagram
     participant Auth as Session Service
     participant Repo as Document Repository
     participant DB as PostgreSQL 16
-    participant Vault as Encrypted Vault Storage
 
     Attacker->>API: GET /api/vault/documents/victim-doc-id/download
     Note over API: 1. Extract HttpOnly cookie (medivault_session)
@@ -44,11 +43,11 @@ sequenceDiagram
     Note over API: 7. Audit log: UNAUTHORIZED_ACCESS_ATTEMPT logged
 ```
 
-### 2.1 Enforcement Rules across Endpoints
+### 2.1 Complete Endpoint Access Matrix
 
-| Endpoint | HTTP Method | Required Role | Ownership Guard Condition | Failure Response |
+| Endpoint | HTTP Method | Required Role | Ownership Guard Condition | Unauthorized Response |
 |---|---|---|---|---|
-| `/api/vault/documents` | `GET` | `PATIENT` | `WHERE ownerId = req.user.id AND deletedAt IS NULL` | Empty list `[]` |
+| `/api/vault/documents` | `GET` | `PATIENT` | `WHERE ownerId = req.user.id AND deletedAt IS NULL` | Returns empty list `[]` |
 | `/api/vault/documents/:id` | `GET` | `PATIENT` | `WHERE id = :id AND ownerId = req.user.id` | `404 Not Found` |
 | `/api/vault/documents/:id/preview`| `GET` | `PATIENT` | `WHERE id = :id AND ownerId = req.user.id` | `404 Not Found` |
 | `/api/vault/documents/:id/download`| `GET` | `PATIENT` | `WHERE id = :id AND ownerId = req.user.id` | `404 Not Found` |
@@ -69,10 +68,10 @@ CREATE POLICY patient_document_isolation ON medical_documents
 
 ### 3.1 Technical Assessment: Prisma ORM Connection Pooling vs. RLS
 
-While RLS provides defense-in-depth, its integration with Node.js and Prisma presents specific architectural challenges:
+While RLS provides defense-in-depth, its integration with Node.js and Prisma presents concrete architectural risks:
 
 1. **Connection Pooling Re-use:**
-   Prisma manages a pool of persistent TCP connections to PostgreSQL as a single database superuser/application user (`medivault_dev`). 
+   Prisma maintains a pool of persistent TCP connections to PostgreSQL as a single database superuser/application user (`medivault_dev`). 
 2. **Session Context Bleed Risk:**
    Setting session context via `SET LOCAL app.current_user_id = 'user-123'` requires wrapping every single query in an interactive transaction (`prisma.$transaction`). If a connection is recycled without clearing session variables, requests could inherit the identity of a previous user.
 3. **Transaction Overhead:**
