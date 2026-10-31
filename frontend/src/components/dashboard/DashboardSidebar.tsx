@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   FileText,
@@ -32,6 +32,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const t = TRANSLATIONS[language];
 
   const handleLogout = async () => {
@@ -78,32 +79,71 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             const Icon = item.icon;
             const isActive = activeTab === item.id;
 
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onSelectTab(item.id)}
-                className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all min-h-[44px] ${
-                  isActive
-                    ? 'bg-brand-50 text-brand-600 font-bold shadow-2xs'
-                    : 'text-brand-muted hover:text-brand-navy hover:bg-slate-50'
-                } focus:outline-hidden focus:ring-2 focus:ring-brand-500`}
-              >
-                <div className="flex items-center gap-3">
-                  <Icon
-                    className={`w-4 h-4 transition-colors ${
-                      isActive ? 'text-brand-500' : 'text-slate-400'
-                    }`}
-                  />
-                  <span>{item.label}</span>
-                </div>
+            const isVaultOpen =
+              item.id === 'vault' &&
+              (location.pathname.includes('/vault') || location.pathname.includes('/intelligence'));
+            const isIntelligenceActive = location.pathname.includes('/intelligence');
 
-                {item.badge !== undefined && (
-                  <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-xs">
-                    {item.badge}
-                  </span>
+            return (
+              <div key={item.id} className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => onSelectTab(item.id)}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all min-h-[44px] ${
+                    isActive
+                      ? 'bg-brand-50 text-brand-600 font-bold shadow-2xs'
+                      : 'text-brand-muted hover:text-brand-navy hover:bg-slate-50'
+                  } focus:outline-hidden focus:ring-2 focus:ring-brand-500`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Icon
+                      className={`w-4 h-4 transition-colors ${
+                        isActive ? 'text-brand-500' : 'text-slate-400'
+                      }`}
+                    />
+                    <span>{item.label}</span>
+                  </div>
+
+                  {item.badge !== undefined && (
+                    <span className="w-5 h-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-xs">
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+
+                {/* Vault Submenu (matching Wireframe) */}
+                {isVaultOpen && (
+                  <div className="pl-6 pr-2 py-1 space-y-1 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/patient/vault')}
+                      className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl font-medium transition-colors ${
+                        !isIntelligenceActive && location.pathname.startsWith('/patient/vault')
+                          ? 'text-[#2675F5] font-bold bg-blue-50/50'
+                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                      data-testid="sidebar-my-documents"
+                    >
+                      <span>My Documents</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/patient/vault/doc-01/intelligence')}
+                      className={`w-full flex items-center justify-between px-3 py-1.5 rounded-xl font-medium transition-colors ${
+                        isIntelligenceActive
+                          ? 'text-[#2675F5] font-bold bg-blue-50 shadow-2xs'
+                          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+                      }`}
+                      data-testid="sidebar-doc-intelligence"
+                    >
+                      <span className="truncate">{t.intelligenceTitle}</span>
+                      <span className="text-[9px] uppercase font-bold px-1.5 py-0.5 rounded-md bg-blue-100 text-[#2675F5]">
+                        {t.betaBadge}
+                      </span>
+                    </button>
+                  </div>
                 )}
-              </button>
+              </div>
             );
           })}
         </nav>

@@ -199,6 +199,78 @@ export interface TranslationDictionary {
   noVaultDocsFound: string;
   noVaultDocsDesc: string;
   resetVaultFilters: string;
+
+  // Document Intelligence (Phase 2D.1)
+  intelligenceTitle: string;
+  intelligenceSubtitle: string;
+  betaBadge: string;
+  demoDataBadge: string;
+  originalDocument: string;
+  extractedInformation: string;
+  reviewValidation: string;
+  reviewProgress: string;
+  itemsRequiringAttention: string;
+  reviewChecklist: string;
+  importantNotice: string;
+  importantNoticeText: string;
+  documentActions: string;
+  downloadOriginal: string;
+  viewInVault: string;
+  shareFuture: string;
+  tabSummary: string;
+  tabLabResults: string;
+  tabMedications: string;
+  tabFacility: string;
+  tabRawJson: string;
+  patientInfoSection: string;
+  reportInfoSection: string;
+  labResultsSection: string;
+  medicationsSection: string;
+  generalNotesSection: string;
+  editBtn: string;
+  editAllBtn: string;
+  saveCorrectionsBtn: string;
+  cancelCorrectionBtn: string;
+  confidenceHigh: string;
+  confidenceMedium: string;
+  confidenceLow: string;
+  statusNeedsReview: string;
+  statusPatientReviewed: string;
+  statusQualifiedReview: string;
+  statusNotProcessed: string;
+  statusUnableToRead: string;
+  statusExtractionAvailable: string;
+  pageLabel: string;
+  zoomIn: string;
+  zoomOut: string;
+  fitWidth: string;
+  medicationWarningAlert: string;
+  editFieldModalTitle: string;
+  originalExtractedValue: string;
+  referenceRangeLabel: string;
+  sourceLocationLabel: string;
+  editValueLabel: string;
+  reasonOptional: string;
+  reasonPlaceholder: string;
+  saveCorrectionModalBtn: string;
+  demoCorrectionDisclaimer: string;
+  fieldTestName: string;
+  fieldExtractedValue: string;
+  fieldUnit: string;
+  fieldConfidence: string;
+  fieldSource: string;
+  fieldActions: string;
+  showAllResults: string;
+  demoBannerNotice: string;
+  mobileViewExtractedCTA: string;
+  mobileBackToDoc: string;
+  mobileExtractedTab: string;
+  mobileReviewTab: string;
+  stateSwitcherLabel: string;
+  unsavedChangesTitle: string;
+  unsavedChangesMessage: string;
+  discardBtn: string;
+  keepEditingBtn: string;
 }
 
 export const TRANSLATIONS: Record<DashboardLanguage, TranslationDictionary> = {
@@ -416,6 +488,81 @@ export const TRANSLATIONS: Record<DashboardLanguage, TranslationDictionary> = {
     noVaultDocsDesc:
       'Try adjusting your search query, clearing filters, or switching category tabs.',
     resetVaultFilters: 'Reset filters',
+
+    // Document Intelligence (Phase 2D.1)
+    intelligenceTitle: 'Document Intelligence',
+    intelligenceSubtitle: 'Review AI-extracted information alongside the original document',
+    betaBadge: 'Beta',
+    demoDataBadge: 'Demo Data',
+    originalDocument: 'Original Document',
+    extractedInformation: 'Extracted Information',
+    reviewValidation: 'Review & Validation',
+    reviewProgress: 'Review Progress',
+    itemsRequiringAttention: 'Items Requiring Attention',
+    reviewChecklist: 'Review Checklist',
+    importantNotice: 'Important Notice',
+    importantNoticeText:
+      'AI-extracted information may contain errors. Always verify important medical information with the original document and consult a qualified healthcare professional.',
+    documentActions: 'Document Actions',
+    downloadOriginal: 'Download Original',
+    viewInVault: 'View in Health Vault',
+    shareFuture: 'Share (Future)',
+    tabSummary: 'Summary',
+    tabLabResults: 'Lab Results',
+    tabMedications: 'Medications',
+    tabFacility: 'Doctor & Facility',
+    tabRawJson: 'Raw JSON',
+    patientInfoSection: 'Patient Information',
+    reportInfoSection: 'Report Information',
+    labResultsSection: 'Laboratory Results',
+    medicationsSection: 'Medications',
+    generalNotesSection: 'General Notes',
+    editBtn: 'Edit',
+    editAllBtn: 'Edit All',
+    saveCorrectionsBtn: 'Save Patient Corrections (Demo Only)',
+    cancelCorrectionBtn: 'Cancel',
+    confidenceHigh: 'High',
+    confidenceMedium: 'Medium',
+    confidenceLow: 'Low',
+    statusNeedsReview: 'Needs Review',
+    statusPatientReviewed: 'Patient Reviewed',
+    statusQualifiedReview: 'Qualified Review Required',
+    statusNotProcessed: 'Not Processed',
+    statusUnableToRead: 'Unable to Read',
+    statusExtractionAvailable: 'Extraction Available',
+    pageLabel: 'Page',
+    zoomIn: 'Zoom In',
+    zoomOut: 'Zoom Out',
+    fitWidth: 'Fit to Width',
+    medicationWarningAlert:
+      'The medication information may be incomplete or unclear. Please verify with the original document and consult a healthcare professional.',
+    editFieldModalTitle: 'Edit Extracted Field',
+    originalExtractedValue: 'Original Extracted Value',
+    referenceRangeLabel: 'Reference Range',
+    sourceLocationLabel: 'Source Location',
+    editValueLabel: 'Edit Value',
+    reasonOptional: 'Reason for Correction (Optional)',
+    reasonPlaceholder: 'e.g., OCR read 14.2 instead of 14.1',
+    saveCorrectionModalBtn: 'Save',
+    demoCorrectionDisclaimer: 'This is a demo correction and will not be permanently saved.',
+    fieldTestName: 'Test Name',
+    fieldExtractedValue: 'Extracted Value',
+    fieldUnit: 'Unit',
+    fieldConfidence: 'Confidence',
+    fieldSource: 'Source',
+    fieldActions: 'Actions',
+    showAllResults: 'Show all results',
+    demoBannerNotice:
+      'This is a demonstration of document intelligence using synthetic data. No real medical analysis has been performed.',
+    mobileViewExtractedCTA: 'View Extracted Information',
+    mobileBackToDoc: 'Original',
+    mobileExtractedTab: 'Extracted',
+    mobileReviewTab: 'Review',
+    stateSwitcherLabel: 'Demo State:',
+    unsavedChangesTitle: 'Unsaved Corrections',
+    unsavedChangesMessage: 'You have unsaved corrections. Are you sure you want to discard them?',
+    discardBtn: 'Discard',
+    keepEditingBtn: 'Keep Editing',
   },
   ne: {
     // Navigation
@@ -630,5 +777,80 @@ export const TRANSLATIONS: Record<DashboardLanguage, TranslationDictionary> = {
     noVaultDocsDesc:
       'कृपया खोजी शब्द परिवर्तन गर्नुहोस्, फिल्टर हटाउनुहोस् वा अर्को वर्ग चयन गर्नुहोस्।',
     resetVaultFilters: 'फिल्टर रिसेट गर्नुहोस्',
+
+    // Document Intelligence (Phase 2D.1)
+    intelligenceTitle: 'कागजात इन्टेलिजेन्स',
+    intelligenceSubtitle: 'मूल कागजातको साथमा एआई-निष्कर्षित जानकारी समीक्षा गर्नुहोस्',
+    betaBadge: 'बेटा',
+    demoDataBadge: 'नमुना डेटा',
+    originalDocument: 'मूल कागजात',
+    extractedInformation: 'निष्कर्षित जानकारी',
+    reviewValidation: 'समीक्षा तथा प्रमाणीकरण',
+    reviewProgress: 'समीक्षा प्रगति',
+    itemsRequiringAttention: 'ध्यान दिनुपर्ने विषयहरू',
+    reviewChecklist: 'समीक्षा चेकलिस्ट',
+    importantNotice: 'महत्त्वपूर्ण सूचना',
+    importantNoticeText:
+      'एआई-निष्कर्षित जानकारीमा त्रुटिहरू हुन सक्छन्। सधैं मूल कागजातसँग महत्त्वपूर्ण स्वास्थ्य विवरण प्रमाणीकरण गर्नुहोस् र योग्य स्वास्थ्यकर्मीको सल्लाह लिनुहोस्।',
+    documentActions: 'कागजात कार्यहरू',
+    downloadOriginal: 'मूल फाइल डाउनलोड',
+    viewInVault: 'हेल्थ भल्टमा हेर्नुहोस्',
+    shareFuture: 'साझा गर्नुहोस् (भविष्यमा)',
+    tabSummary: 'सारांश',
+    tabLabResults: 'ल्याब नतिजा',
+    tabMedications: 'औषधिहरू',
+    tabFacility: 'चिकित्सक तथा संस्था',
+    tabRawJson: 'कच्चा JSON',
+    patientInfoSection: 'बिरामीको विवरण',
+    reportInfoSection: 'रिपोर्ट विवरण',
+    labResultsSection: 'प्रयोगशाला नतिजाहरू',
+    medicationsSection: 'औषधिहरू',
+    generalNotesSection: 'सामान्य टिपोट',
+    editBtn: 'सम्पादन',
+    editAllBtn: 'सबै सम्पादन',
+    saveCorrectionsBtn: 'बिरामी सुधार सुरक्षित गर्नुहोस् (नमुना मात्र)',
+    cancelCorrectionBtn: 'रद्द गर्नुहोस्',
+    confidenceHigh: 'उच्च',
+    confidenceMedium: 'मध्यम',
+    confidenceLow: 'न्यून',
+    statusNeedsReview: 'समीक्षा आवश्यक',
+    statusPatientReviewed: 'बिरामीद्वारा समीक्षित',
+    statusQualifiedReview: 'योग्य समीक्षा आवश्यक',
+    statusNotProcessed: 'प्रशोधन नभएको',
+    statusUnableToRead: 'पढ्न नसकिएको',
+    statusExtractionAvailable: 'निष्कर्षण उपलब्ध',
+    pageLabel: 'पृष्ठ',
+    zoomIn: 'जुम बढाउनुहोस्',
+    zoomOut: 'जुम घटाउनुहोस्',
+    fitWidth: 'चौडाइ मिलाउनुहोस्',
+    medicationWarningAlert:
+      'औषधिको जानकारी अपूर्ण वा अस्पष्ट हुन सक्छ। कृपया मूल कागजातसँग प्रमाणित गर्नुहोस् र स्वास्थ्यकर्मीको सल्लाह लिनुहोस्।',
+    editFieldModalTitle: 'निष्कर्षित विवरण सम्पादन गर्नुहोस्',
+    originalExtractedValue: 'मूल निष्कर्षित मान',
+    referenceRangeLabel: 'सन्दर्भ दायरा',
+    sourceLocationLabel: 'स्रोत स्थान',
+    editValueLabel: 'मान सम्पादन',
+    reasonOptional: 'सुधारको कारण (ऐच्छिक)',
+    reasonPlaceholder: 'जस्तै: OCR ले १४.१ को सट्टा १४.२ पढ्यो',
+    saveCorrectionModalBtn: 'सुरक्षित गर्नुहोस्',
+    demoCorrectionDisclaimer: 'यो नमुना सुधार हो र स्थायी रूपमा सुरक्षित हुने छैन।',
+    fieldTestName: 'परीक्षणको नाम',
+    fieldExtractedValue: 'निष्कर्षित मान',
+    fieldUnit: 'इकाइ',
+    fieldConfidence: 'विश्वसनीयता',
+    fieldSource: 'स्रोत',
+    fieldActions: 'कार्यहरू',
+    showAllResults: 'सबै नतिजाहरू देखाउनुहोस्',
+    demoBannerNotice:
+      'यो काल्पनिक नमुना डेटा प्रयोग गरेर कागजात इन्टेलिजेन्सको प्रदर्शन हो। कुनै वास्तविक मेडिकल विश्लेषण गरिएको छैन।',
+    mobileViewExtractedCTA: 'निष्कर्षित जानकारी हेर्नुहोस्',
+    mobileBackToDoc: 'मूल',
+    mobileExtractedTab: 'निष्कर्षित',
+    mobileReviewTab: 'समीक्षा',
+    stateSwitcherLabel: 'नमुना अवस्था:',
+    unsavedChangesTitle: 'असुरक्षित सुधारहरू',
+    unsavedChangesMessage: 'तपाईंसँग असुरक्षित सुधारहरू छन्। के तपाईं तिनीहरूलाई हटाउन चाहनुहुन्छ?',
+    discardBtn: 'हटाउनुहोस्',
+    keepEditingBtn: 'सम्पादन जारी राख्नुहोस्',
   },
 };

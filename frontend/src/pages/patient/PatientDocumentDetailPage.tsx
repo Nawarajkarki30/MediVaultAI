@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Download, MoreVertical } from 'lucide-react';
+import { ArrowLeft, Download, MoreVertical, Sparkles } from 'lucide-react';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import { DocumentPreview } from '../../components/vault/DocumentPreview';
@@ -218,6 +218,19 @@ export const PatientDocumentDetailPage: React.FC = () => {
           </Link>
 
           <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={() => navigate(`/patient/vault/${document.id}/intelligence`)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-[#2675F5] hover:bg-blue-600 transition-colors min-h-[38px] shadow-2xs"
+              data-testid="doc-detail-intelligence-btn"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-white" />
+              <span>{t.intelligenceTitle}</span>
+              <span className="text-[10px] uppercase font-extrabold px-1.5 py-0.5 rounded-md bg-white/20 text-white">
+                {t.betaBadge}
+              </span>
+            </button>
+
             <button
               type="button"
               onClick={handleDownload}

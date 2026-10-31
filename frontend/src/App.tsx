@@ -10,6 +10,7 @@ import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
 import { PatientVaultPage } from './pages/patient/PatientVaultPage';
 import { PatientDocumentDetailPage } from './pages/patient/PatientDocumentDetailPage';
+import { PatientDocumentIntelligencePage } from './pages/patient/PatientDocumentIntelligencePage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -52,6 +53,23 @@ export const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <PatientDocumentDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          {/* Document Intelligence Review UI (Phase 2D.1) */}
+          <Route
+            path="/patient/vault/:documentId/intelligence"
+            element={
+              <ProtectedRoute>
+                <PatientDocumentIntelligencePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/patient/intelligence"
+            element={
+              <ProtectedRoute>
+                <PatientDocumentIntelligencePage />
               </ProtectedRoute>
             }
           />

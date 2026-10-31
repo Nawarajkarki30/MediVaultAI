@@ -106,6 +106,24 @@ export const DocumentActionMenu: React.FC<DocumentActionMenuProps> = ({
             type="button"
             onClick={() => {
               onClose();
+              navigate(`/patient/vault/${document.id}/intelligence`);
+            }}
+            className="w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold text-brand-600 bg-brand-50/70 hover:bg-brand-50 transition-colors text-left"
+            data-testid="menu-doc-intelligence-btn"
+          >
+            <div className="flex items-center gap-3">
+              <Sparkles className="w-4 h-4 text-brand-500" />
+              <span>{t.intelligenceTitle}</span>
+            </div>
+            <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-md bg-blue-100 text-[#2675F5]">
+              {t.betaBadge}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
               navigate(`/vault/${document.id}`);
             }}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-navy-950 hover:bg-slate-50 transition-colors text-left"

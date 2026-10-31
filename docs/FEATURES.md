@@ -161,28 +161,58 @@ This document provides a clear breakdown of features currently implemented in **
 
 ---
 
-## 5. Planned Phase 2C.2 & 2D: Document Storage & AI Extraction Engine
+## 5. Phase 2C.3 & 2C.4: Secure Medical Vault Storage & Hardening (Completed)
 
-These features are planned and architected, but **not yet active** in Phase 2C.1:
-
-- **Medical Document Ingestion & Storage (Phase 2C.2):**
-  - Prisma database schema for `MedicalDocument`, `DocumentCategory`, and `DocumentNote`.
-  - Multi-file multipart uploader supporting PDF, JPEG, PNG, HEIC.
-  - Virus scanning, metadata sanitization, and MIME sniffing.
-  - S3-compatible cloud object storage with server-side encryption (SSE-S3 or SSE-KMS).
-- **OCR Extraction & VLM Pipeline (Phase 2D):**
-  - High-accuracy optical character recognition and visual language model extraction.
-  - Research evaluation target: $\ge 95\%$ verified field extraction accuracy on supported structured report types.
-  - Tabular laboratory result parsing (analyte name, observed value, unit, reference range).
-- **Bilingual Generative AI Explanation Engine:**
-  - Medically guardrailed prompts converting clinical terminology into readable grade-6 explanations.
-  - Native dual-language output: English and Nepali (देवनागरी).
-  - Highlighting out-of-range lab markers with neutral, non-alarmist summaries.
-  - Mandatory clinical disclaimer injection on every generated summary.
+- **Envelope Encryption Storage:**
+  - AES-256-GCM authenticated encryption with unique per-document Data Encryption Keys (DEKs).
+  - Private filesystem storage with non-executable file permissions.
+  - Fail-closed streaming authenticated decryption with tag pre-verification.
+- **Antivirus & Malware Screening:**
+  - Local ClamAV daemon integration (`127.0.0.1:3310`).
+  - Strict upload quarantine for unverified files.
+- **Security Hardening (Phase 2C.4):**
+  - Multi-tier rate limiting (Per-Account, Per-IP, and Global tiers).
+  - Anti-spoofing reverse proxy IP enforcement.
+  - Multipart resource limits and strict form field sanitization.
+  - Request timeout and coordinated `AbortSignal` cancellation.
+  - Session-bound cryptographic anti-CSRF protection.
+  - Automated disaster recovery and backup verification test suite.
 
 ---
 
-## 6. Planned Phase 3: Family Sharing & Caregiver Network
+## 6. Phase 2D.1: Document Intelligence Review UI (Completed)
+
+- **Desktop 3-Panel Review Workspace (`/patient/vault/:documentId/intelligence`):**
+  - **Panel 1 — Original Document Viewer:** Page navigation (`< 1 / 3 >`), zoom scaling (60% to 150%), high-fidelity synthetic canvas with hospital branding, CBC, and Lipid tables, page thumbnails, and preview-unavailable fallback.
+  - **Panel 2 — Extracted Information:** Status badge (`Needs Review`), demo banner, 5 tabs (`Summary`, `Lab Results`, `Medications`, `Doctor & Facility`, `Raw JSON`), patient/facility cards, lab results table with confidence pills and source links, medication table with amber safety warning, and general notes.
+  - **Panel 3 — Review & Validation:** Progress bar (43%), attention items with severity flags, interactive review checklist, important clinical disclaimer, and document action shortcuts.
+- **Mobile 3-Screen Workflow:**
+  - Screen 1: Original Document preview card + `View Extracted Information` CTA.
+  - Screen 2: Categorized Extracted Fields list.
+  - Screen 3: Fullscreen Field Correction Dialog with reason textarea, unit badge, and unsaved changes confirmation guard.
+- **Human-in-the-Loop Corrections:**
+  - Safe, local React state modifications with strikethrough original value representation.
+  - Zero unsolicited server mutations or local storage leaks.
+- **10 Demonstration States Matrix:**
+  - Interactive selector to demo: Standard Lab Report, Unprocessed Document, Missing Fields, Unreadable Scan, Ambiguous Medication, Patient-Corrected, Empty Extraction, Unauthorized Access, Preview Unavailable, and Extraction Failed.
+- **Bilingual English & Nepali Localization:**
+  - Complete translations for review statuses, confidence levels, attention alerts, checklist items, and safety notices.
+
+---
+
+## 7. Planned Phase 2D.2: Real VLM & OCR Medical Extraction Engine
+
+- **High-Accuracy Document Extraction:**
+  - Research evaluation target: $\ge 95\%$ verified field extraction accuracy on supported structured laboratory reports.
+  - Local privacy-preserving VLM/OCR pipelines (zero external API transmission of PHI).
+  - Structured extraction schema: Analyte names, observed values, reference intervals, units, physician signatures.
+- **Bilingual Generative AI Explanation Engine:**
+  - Converting clinical laboratory results into plain language grade-6 summaries in English and Nepali.
+  - Mandatory non-clinical disclaimer injection on every explanation.
+
+---
+
+## 8. Planned Phase 3: Family Sharing & Caregiver Network
 
 - **Family Permission Center:**
   - Inviting family members via secure invitation tokens.
