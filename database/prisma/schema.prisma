@@ -1,5 +1,5 @@
 // MediVault AI — Database Schema
-// Phase 1 Foundation + Phase 2A Authentication Entities
+// Phase 1 Foundation + Phase 2A Authentication + Phase 2C Medical Vault Entities
 
 generator client {
   provider = "prisma-client-js"
@@ -31,6 +31,37 @@ enum Role {
   ADMIN
 }
 
+/// Medical document classification category.
+enum DocumentCategory {
+  LABORATORY_REPORT
+  PRESCRIPTION
+  IMAGING_REPORT
+  DISCHARGE_SUMMARY
+  CONSULTATION_NOTE
+  OTHER
+}
+
+/// Document lifecycle processing status.
+enum DocumentStatus {
+  PROCESSING
+  ACTIVE
+  FAILED
+  DELETED
+}
+
+/// Tamper-evident audit event classifications.
+enum DocumentAuditEventType {
+  DOCUMENT_UPLOADED
+  DOCUMENT_DOWNLOADED
+  DOCUMENT_VIEWED
+  DOCUMENT_METADATA_UPDATED
+  DOCUMENT_SOFT_DELETED
+  DOCUMENT_RESTORED
+  DOCUMENT_PURGED
+  DOCUMENT_ACCESS_DENIED
+  MALWARE_DETECTED
+}
+
 /// User account entity.
 model User {
   id              String    @id @default(uuid())
@@ -46,6 +77,7 @@ model User {
   sessions             Session[]
   verificationTokens   VerificationToken[]
   passwordResetTokens  PasswordResetToken[]
+  medicalDocuments     MedicalDocument[]
 
   @@map("users")
 }
@@ -103,4 +135,77 @@ model PasswordResetToken {
   @@index([tokenHash])
   @@index([expiresAt])
   @@map("password_reset_tokens")
+}
+
+/// Core medical document record.
+model MedicalDocument {
+  id               String           @id @default(uuid())
+  ownerId          String
+  title            String
+  originalFileName String
+  mimeType         String
+  category         DocumentCategory @default(OTHER)
+  fileSize         Int              // Size of unencrypted file in bytes (up to 10MB)
+  status           DocumentStatus   @default(ACTIVE)
+  notes            String?
+  documentDate     DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?        // Soft delete timestamp
+
+  // Relations
+  owner            User                    @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  storageMetadata  DocumentStorageMetadata?
+  auditEvents      DocumentAuditEvent[]
+
+  @@index([ownerId])
+  @@index([ownerId, deletedAt])
+  @@index([ownerId, category])
+  @@index([status])
+  @@map("medical_documents")
+}
+
+/// Cryptographic and storage envelope metadata.
+/// Stores wrapped DEKs, nonces, and auth tags. Never stores the Master KEK.
+model DocumentStorageMetadata {
+  id              String          @id @default(uuid())
+  documentId      String          @unique
+  storageKey      String          @unique // Storage identifier used on disk: <storageKey>.enc
+  storageVersion  Int             @default(1)
+  keyVersion      Int             @default(1) // KEK version used to wrap the DEK
+  encryptedDek    String          // Base64 encoded wrapped DEK
+  dekNonce        String          // Base64 encoded nonce (12 bytes) used for DEK wrapping
+  dekAuthTag      String          // Base64 encoded auth tag (16 bytes) for DEK wrapping
+  fileNonce       String          // Base64 encoded nonce (12 bytes) used for file encryption
+  fileAuthTag     String          // Base64 encoded auth tag (16 bytes) for file encryption
+  sha256Checksum  String          // SHA-256 hex hash of original unencrypted plaintext
+  ciphertextBytes Int             // Size of encrypted payload on disk
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  document        MedicalDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([storageKey])
+  @@map("document_storage_metadata")
+}
+
+/// Tamper-evident audit event log for medical document operations.
+/// Never contains unencrypted document content or raw keys.
+model DocumentAuditEvent {
+  id          String                 @id @default(uuid())
+  documentId  String?
+  userId      String
+  eventType   DocumentAuditEventType
+  ipAddress   String?
+  userAgent   String?
+  details     String?                // Safe structured JSON or notes (no PHI or secrets)
+  timestamp   DateTime               @default(now())
+
+  document    MedicalDocument?       @relation(fields: [documentId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([documentId])
+  @@index([eventType])
+  @@index([timestamp])
+  @@map("document_audit_events")
 }

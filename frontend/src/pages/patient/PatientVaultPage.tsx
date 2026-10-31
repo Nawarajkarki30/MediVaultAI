@@ -61,6 +61,7 @@ export const PatientVaultPage: React.FC = () => {
     updateDocumentCategory,
     deleteDocument,
     resetDemoDocuments,
+    refreshDocuments,
   } = vault;
 
   return (
@@ -100,13 +101,13 @@ export const PatientVaultPage: React.FC = () => {
             isAllCleared={documents.length === 0}
           />
         ) : viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-            {filteredDocuments.map((doc) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredDocuments.map((document) => (
               <DocumentCard
-                key={doc.id}
-                document={doc}
+                key={document.id}
+                document={document}
                 language={language}
-                onOpenActionMenu={(document) => setActiveActionDocument(document)}
+                onOpenActionMenu={(doc) => setActiveActionDocument(doc)}
               />
             ))}
           </div>
@@ -127,6 +128,10 @@ export const PatientVaultPage: React.FC = () => {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         language={language}
+        onUploadSuccess={() => {
+          refreshDocuments();
+          showToast('Document encrypted and stored in vault!');
+        }}
       />
 
       <FilterSortPanel

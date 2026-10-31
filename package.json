@@ -22,6 +22,8 @@
     "prisma:migrate": "npm run migrate:dev --workspace=@medivault/database",
     "db:verify": "tsx scripts/verify-db.ts",
     "db:test:live": "tsx scripts/test-live-auth.ts",
+    "vault:reconcile": "tsx scripts/vault-reconcile.ts",
+    "vault:backup:test": "tsx scripts/vault-backup-restore.ts",
     "docker:db:up": "powershell scripts/start-postgres.ps1",
     "docker:db:down": "docker compose down"
   },

@@ -41,3 +41,10 @@ coverage
 prisma/migrations/dev
 generated
 
+# MediVault Secure Storage Vault (Never commit encrypted/staging blobs)
+storage_vault/
+backups/
+*.enc
+*.tmp
+
+

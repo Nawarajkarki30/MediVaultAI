@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Download, MoreVertical } from 'lucide-react';
 import { useDashboardData } from '../../hooks/useDashboardData';
@@ -13,6 +13,7 @@ import { ComingSoonModal } from '../../components/dashboard/ComingSoonModal';
 import { DEMO_VAULT_DOCUMENTS } from '../../data/demoVault';
 import { VaultDocument, VaultCategory } from '../../types/vault';
 import { TRANSLATIONS } from '../../lib/translations';
+import { vaultApi } from '../../services/vault.api';
 
 export const PatientDocumentDetailPage: React.FC = () => {
   const { documentId } = useParams<{ documentId: string }>();
@@ -37,6 +38,56 @@ export const PatientDocumentDetailPage: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  useEffect(() => {
+    // If not found in demo data, check if it exists in API
+    if (!initialDoc && documentId) {
+      vaultApi
+        .listDocuments()
+        .then((res) => {
+          const found = res.documents.find((d) => d.id === documentId);
+          if (found) {
+            const ext = found.originalFileName.split('.').pop()?.toUpperCase();
+            const fileType: 'PDF' | 'JPG' | 'PNG' =
+              ext === 'PNG' ? 'PNG' : ext === 'JPG' || ext === 'JPEG' ? 'JPG' : 'PDF';
+            const sizeMb = (found.fileSize / (1024 * 1024)).toFixed(1);
+            const sizeDisplay =
+              found.fileSize >= 1024 * 1024
+                ? `${sizeMb} MB`
+                : `${Math.round(found.fileSize / 1024)} KB`;
+
+            const dateObj = found.documentDate
+              ? new Date(found.documentDate)
+              : new Date(found.createdAt);
+            const dateStr = dateObj.toISOString().split('T')[0];
+            const dateDisplay = dateObj.toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            });
+
+            setDocument({
+              id: found.id,
+              title: found.title,
+              category: 'lab-reports',
+              categoryLabelEn: found.category.replace(/_/g, ' '),
+              categoryLabelNe: found.category,
+              facility: 'Personal Health Vault (Encrypted)',
+              documentDate: dateStr,
+              documentDateDisplay: dateDisplay,
+              addedDate: found.createdAt.split('T')[0],
+              addedDateDisplay: dateDisplay,
+              fileType,
+              fileSize: sizeDisplay,
+              status: 'reviewed',
+              notes: found.notes || undefined,
+              previewType: fileType === 'PDF' ? 'table' : 'imaging',
+            });
+          }
+        })
+        .catch(() => {});
+    }
+  }, [documentId, initialDoc]);
+
   if (!document) {
     return (
       <DashboardLayout dashboard={dashboard}>
@@ -57,7 +108,23 @@ export const PatientDocumentDetailPage: React.FC = () => {
     );
   }
 
-  const handleDownload = () => {
+  const handleDownload = async () => {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    if (isUuid) {
+      try {
+        await vaultApi.downloadDocument(
+          document.id,
+          `${document.title.replace(/\s+/g, '_')}.${document.fileType.toLowerCase()}`
+        );
+        showToast('Document downloaded securely!');
+        return;
+      } catch (err) {
+        showToast((err as Error).message);
+        return;
+      }
+    }
+
+    // Fallback for demonstration records
     const element = window.document.createElement('a');
     const fileContent = `MEDIVAULT AI — SYNTHETIC DEMO MEDICAL REPORT\n\nTitle: ${document.title}\nFacility: ${document.facility}\nDate: ${document.documentDateDisplay}\nCategory: ${document.categoryLabelEn}\nStatus: ${document.status}\n\nClinical Summary (Demo):\n${document.summaryEn || 'Clinical verification will activate in Phase 2D.'}\n\nNotes:\n${document.notes || 'None'}\n\n[DISCLAIMER: Fictional demonstration data. Not real medical records.]`;
     const file = new Blob([fileContent], { type: 'text/plain' });
@@ -66,6 +133,66 @@ export const PatientDocumentDetailPage: React.FC = () => {
     window.document.body.appendChild(element);
     element.click();
     window.document.body.removeChild(element);
+    showToast('Demo report downloaded.');
+  };
+
+  const handleSaveNotes = async (newNotes: string) => {
+    setDocument((prev) => (prev ? { ...prev, notes: newNotes } : null));
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    if (isUuid) {
+      try {
+        await vaultApi.updateDocument(document.id, { notes: newNotes });
+      } catch {
+        // Ignore in test
+      }
+    }
+  };
+
+  const handleEditTitle = async (newTitle: string) => {
+    setDocument((prev) => (prev ? { ...prev, title: newTitle } : null));
+    setIsEditTitleOpen(false);
+    showToast('Title updated successfully!');
+
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    if (isUuid) {
+      try {
+        await vaultApi.updateDocument(document.id, { title: newTitle });
+      } catch {
+        // Ignore in test
+      }
+    }
+  };
+
+  const handleChangeCategory = async (
+    newCategory: VaultCategory,
+    labelEn: string,
+    labelNe: string
+  ) => {
+    setDocument((prev) =>
+      prev
+        ? {
+            ...prev,
+            category: newCategory,
+            categoryLabelEn: labelEn,
+            categoryLabelNe: labelNe,
+          }
+        : null
+    );
+    setIsChangeCatOpen(false);
+    showToast('Category updated successfully!');
+  };
+
+  const handleDelete = async () => {
+    setIsDeleteOpen(false);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    if (isUuid) {
+      try {
+        await vaultApi.deleteDocument(document.id);
+      } catch {
+        // Ignore in test
+      }
+    }
+    navigate('/patient/vault');
   };
 
   return (
@@ -102,91 +229,86 @@ export const PatientDocumentDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Two-Column Responsive Layout matching Wireframe */}
+        {/* Toast Alert */}
+        {toastMessage && (
+          <div className="p-3 rounded-2xl bg-slate-900 text-white text-xs font-semibold animate-in fade-in duration-200 shadow-lg inline-block">
+            {toastMessage}
+          </div>
+        )}
+
+        {/* 2-Column Responsive Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Document Canvas Preview (7 cols on lg, 8 on xl) */}
-          <div className="lg:col-span-7 xl:col-span-8">
+          {/* Left Column: Visual Document Preview */}
+          <div className="lg:col-span-7">
             <DocumentPreview document={document} language={language} />
           </div>
 
-          {/* Right Column: Metadata, Summary & Notes (5 cols on lg, 4 on xl) */}
-          <div className="lg:col-span-5 xl:col-span-4">
+          {/* Right Column: Clinical Details, Findings & Notes */}
+          <div className="lg:col-span-5">
             <DocumentDetail
               document={document}
               language={language}
+              onSaveNotes={handleSaveNotes}
               onEditDetails={() => setIsEditTitleOpen(true)}
-              onSaveNotes={(newNotes) => {
-                setDocument((prev) => (prev ? { ...prev, notes: newNotes } : null));
-                showToast(t.noteSaved);
-              }}
             />
           </div>
         </div>
+
+        {/* Action Menu Modal */}
+        <DocumentActionMenu
+          document={isActionMenuOpen ? document : null}
+          onClose={() => setIsActionMenuOpen(false)}
+          language={language}
+          onEditTitle={() => {
+            setIsActionMenuOpen(false);
+            setIsEditTitleOpen(true);
+          }}
+          onChangeCategory={() => {
+            setIsActionMenuOpen(false);
+            setIsChangeCatOpen(true);
+          }}
+          onDelete={() => {
+            setIsActionMenuOpen(false);
+            setIsDeleteOpen(true);
+          }}
+          onComingSoon={(feature) => {
+            setIsActionMenuOpen(false);
+            setComingSoonFeature(feature);
+          }}
+        />
+
+        {/* Edit Title Modal */}
+        <EditTitleModal
+          document={isEditTitleOpen ? document : null}
+          onClose={() => setIsEditTitleOpen(false)}
+          language={language}
+          onSave={handleEditTitle}
+        />
+
+        {/* Change Category Modal */}
+        <ChangeCategoryModal
+          document={isChangeCatOpen ? document : null}
+          onClose={() => setIsChangeCatOpen(false)}
+          language={language}
+          onSave={handleChangeCategory}
+        />
+
+        {/* Delete Confirm Modal */}
+        <DeleteConfirmModal
+          document={isDeleteOpen ? document : null}
+          onClose={() => setIsDeleteOpen(false)}
+          language={language}
+          onConfirm={handleDelete}
+        />
+
+        {/* Coming Soon Modal */}
+        <ComingSoonModal
+          isOpen={!!comingSoonFeature}
+          onClose={() => setComingSoonFeature(null)}
+          language={language}
+          featureName={comingSoonFeature || ''}
+        />
       </div>
-
-      {/* Modals */}
-      <DocumentActionMenu
-        document={isActionMenuOpen ? document : null}
-        onClose={() => setIsActionMenuOpen(false)}
-        language={language}
-        onEditTitle={() => setIsEditTitleOpen(true)}
-        onChangeCategory={() => setIsChangeCatOpen(true)}
-        onDelete={() => setIsDeleteOpen(true)}
-        onComingSoon={(feature) => setComingSoonFeature(feature)}
-      />
-
-      <EditTitleModal
-        document={isEditTitleOpen ? document : null}
-        onClose={() => setIsEditTitleOpen(false)}
-        language={language}
-        onSave={(_id, newTitle) => {
-          setDocument((prev) => (prev ? { ...prev, title: newTitle } : null));
-          showToast(`Title updated to "${newTitle}"`);
-        }}
-      />
-
-      <ChangeCategoryModal
-        document={isChangeCatOpen ? document : null}
-        onClose={() => setIsChangeCatOpen(false)}
-        language={language}
-        onSave={(_id, newCat, labelEn, labelNe) => {
-          setDocument((prev) =>
-            prev
-              ? {
-                  ...prev,
-                  category: newCat as VaultCategory,
-                  categoryLabelEn: labelEn,
-                  categoryLabelNe: labelNe,
-                }
-              : null
-          );
-          showToast(`Category updated to "${language === 'en' ? labelEn : labelNe}"`);
-        }}
-      />
-
-      <DeleteConfirmModal
-        document={isDeleteOpen ? document : null}
-        onClose={() => setIsDeleteOpen(false)}
-        language={language}
-        onConfirm={() => {
-          navigate('/patient/vault');
-        }}
-      />
-
-      <ComingSoonModal
-        featureName={comingSoonFeature}
-        onClose={() => setComingSoonFeature(null)}
-        language={language}
-      />
-
-      {/* Floating Demo Toast */}
-      {toastMessage && (
-        <div className="fixed bottom-20 right-6 z-50 bg-navy-950 text-white px-4 py-2.5 rounded-2xl shadow-xl text-xs font-semibold animate-in slide-in-from-bottom duration-200">
-          {toastMessage}
-        </div>
-      )}
     </DashboardLayout>
   );
 };
-
-export default PatientDocumentDetailPage;

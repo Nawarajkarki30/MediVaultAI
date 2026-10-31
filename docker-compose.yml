@@ -18,6 +18,14 @@ services:
       timeout: 3s
       retries: 5
 
+  clamav:
+    image: clamav/clamav:latest
+    container_name: medivault-clamav
+    restart: unless-stopped
+    ports:
+      # Bound strictly to 127.0.0.1 (local development machine only) on port 3310
+      - "127.0.0.1:${CLAMAV_PORT:-3310}:3310"
+
 volumes:
   postgres_data:
     name: medivault_postgres_data

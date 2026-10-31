@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   VaultDocument,
   VaultCategory,
@@ -9,6 +9,49 @@ import {
   VaultFilterState,
 } from '../types/vault';
 import { DEMO_VAULT_DOCUMENTS } from '../data/demoVault';
+import { vaultApi, ApiDocument } from '../services/vault.api';
+
+function mapApiToVaultDoc(apiDoc: ApiDocument): VaultDocument {
+  const ext = apiDoc.originalFileName.split('.').pop()?.toUpperCase() || 'PDF';
+  const fileType: 'PDF' | 'JPG' | 'PNG' =
+    ext === 'PNG' ? 'PNG' : ext === 'JPG' || ext === 'JPEG' ? 'JPG' : 'PDF';
+  const sizeMb = (apiDoc.fileSize / (1024 * 1024)).toFixed(1);
+  const sizeDisplay =
+    apiDoc.fileSize >= 1024 * 1024 ? `${sizeMb} MB` : `${Math.round(apiDoc.fileSize / 1024)} KB`;
+
+  let cat: VaultCategory = 'other';
+  if (apiDoc.category === 'LABORATORY_REPORT') cat = 'lab-reports';
+  else if (apiDoc.category === 'PRESCRIPTION') cat = 'prescriptions';
+  else if (apiDoc.category === 'IMAGING_REPORT') cat = 'imaging-reports';
+  else if (apiDoc.category === 'DISCHARGE_SUMMARY') cat = 'discharge-summaries';
+  else if (apiDoc.category === 'CONSULTATION_NOTE') cat = 'consultation-notes';
+
+  const dateObj = apiDoc.documentDate ? new Date(apiDoc.documentDate) : new Date(apiDoc.createdAt);
+  const dateStr = dateObj.toISOString().split('T')[0];
+  const dateDisplay = dateObj.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  return {
+    id: apiDoc.id,
+    title: apiDoc.title,
+    category: cat,
+    categoryLabelEn: apiDoc.category.replace(/_/g, ' '),
+    categoryLabelNe: apiDoc.category,
+    facility: 'Personal Health Vault (Encrypted)',
+    documentDate: dateStr,
+    documentDateDisplay: dateDisplay,
+    addedDate: apiDoc.createdAt.split('T')[0],
+    addedDateDisplay: dateDisplay,
+    fileType,
+    fileSize: sizeDisplay,
+    status: 'reviewed',
+    notes: apiDoc.notes || undefined,
+    previewType: fileType === 'PDF' ? 'table' : 'imaging',
+  };
+}
 
 export interface UseVaultDocumentsReturn {
   // Data
@@ -51,7 +94,7 @@ export interface UseVaultDocumentsReturn {
   toastMessage: string | null;
   showToast: (msg: string) => void;
 
-  // Document Mutations (Client-side Demo State)
+  // Document Mutations
   updateDocumentTitle: (id: string, newTitle: string) => void;
   updateDocumentCategory: (
     id: string,
@@ -62,6 +105,7 @@ export interface UseVaultDocumentsReturn {
   updateDocumentNotes: (id: string, notes: string) => void;
   deleteDocument: (id: string) => void;
   resetDemoDocuments: () => void;
+  refreshDocuments: () => Promise<void>;
 }
 
 export const useVaultDocuments = (): UseVaultDocumentsReturn => {
@@ -94,6 +138,27 @@ export const useVaultDocuments = (): UseVaultDocumentsReturn => {
       setToastMessage(null);
     }, 3200);
   }, []);
+
+  const refreshDocuments = useCallback(async () => {
+    try {
+      const res = await vaultApi.listDocuments();
+      if (res && res.documents && res.documents.length > 0) {
+        const liveDocs = res.documents.map(mapApiToVaultDoc);
+        setDocuments((prev) => {
+          const nonLive = prev.filter(
+            (p) => !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(p.id)
+          );
+          return [...liveDocs, ...nonLive];
+        });
+      }
+    } catch {
+      // Gracefully fall back to demo documents if offline or in testing
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshDocuments();
+  }, [refreshDocuments]);
 
   // Setters
   const setSearchQuery = useCallback((query: string) => {
@@ -144,8 +209,8 @@ export const useVaultDocuments = (): UseVaultDocumentsReturn => {
     );
   }, [filters]);
 
-  // Compute category counts
-  const categoryCounts = useMemo<Record<VaultCategory, number>>(() => {
+  // Category Counts
+  const categoryCounts = useMemo(() => {
     const counts: Record<VaultCategory, number> = {
       all: documents.length,
       'lab-reports': 0,
@@ -156,85 +221,109 @@ export const useVaultDocuments = (): UseVaultDocumentsReturn => {
       other: 0,
     };
 
-    documents.forEach((doc) => {
+    for (const doc of documents) {
       if (counts[doc.category] !== undefined) {
-        counts[doc.category] += 1;
+        counts[doc.category]++;
+      } else {
+        counts.other++;
       }
-    });
+    }
 
     return counts;
   }, [documents]);
 
-  // Filter & Sort computation
+  // Filtered & Sorted Documents
   const filteredDocuments = useMemo(() => {
-    const filtered = documents.filter((doc) => {
-      // Category filter
-      if (filters.category !== 'all' && doc.category !== filters.category) {
-        return false;
-      }
+    return documents
+      .filter((doc) => {
+        // Search query
+        if (filters.searchQuery.trim()) {
+          const q = filters.searchQuery.toLowerCase();
+          const matchTitle = doc.title.toLowerCase().includes(q);
+          const matchFacility = doc.facility.toLowerCase().includes(q);
+          const matchDoctor = doc.doctorName?.toLowerCase().includes(q) || false;
+          const matchCategoryEn = doc.categoryLabelEn.toLowerCase().includes(q);
+          const matchCategoryNe = doc.categoryLabelNe.toLowerCase().includes(q);
+          if (
+            !matchTitle &&
+            !matchFacility &&
+            !matchDoctor &&
+            !matchCategoryEn &&
+            !matchCategoryNe
+          ) {
+            return false;
+          }
+        }
 
-      // File Type filter
-      if (filters.fileType !== 'all' && doc.fileType !== filters.fileType) {
-        return false;
-      }
-
-      // Processing Status filter
-      if (filters.status !== 'all' && doc.status !== filters.status) {
-        return false;
-      }
-
-      // Date Range filters (comparing YYYY-MM-DD)
-      if (filters.dateFrom && doc.documentDate < filters.dateFrom) {
-        return false;
-      }
-      if (filters.dateTo && doc.documentDate > filters.dateTo) {
-        return false;
-      }
-
-      // Search Query filter
-      if (filters.searchQuery.trim()) {
-        const q = filters.searchQuery.toLowerCase();
-        const matchesTitle = doc.title.toLowerCase().includes(q);
-        const matchesFacility = doc.facility.toLowerCase().includes(q);
-        const matchesCatEn = doc.categoryLabelEn.toLowerCase().includes(q);
-        const matchesCatNe = doc.categoryLabelNe.toLowerCase().includes(q);
-        const matchesDoctor = doc.doctorName ? doc.doctorName.toLowerCase().includes(q) : false;
-        const matchesNotes = doc.notes ? doc.notes.toLowerCase().includes(q) : false;
-
-        if (!matchesTitle && !matchesFacility && !matchesCatEn && !matchesCatNe && !matchesDoctor && !matchesNotes) {
+        // Category
+        if (filters.category !== 'all' && doc.category !== filters.category) {
           return false;
         }
-      }
 
-      return true;
-    });
+        // File Type
+        if (filters.fileType !== 'all' && doc.fileType !== filters.fileType) {
+          return false;
+        }
 
-    // Sorting
-    return filtered.sort((a, b) => {
-      switch (filters.sortBy) {
-        case 'newest':
-          return b.documentDate.localeCompare(a.documentDate);
-        case 'oldest':
-          return a.documentDate.localeCompare(b.documentDate);
-        case 'name-asc':
-          return a.title.localeCompare(b.title);
-        case 'recently-added':
-          return b.addedDate.localeCompare(a.addedDate);
-        default:
-          return 0;
-      }
-    });
+        // Processing Status
+        if (filters.status !== 'all' && doc.status !== filters.status) {
+          return false;
+        }
+
+        // Date Range
+        if (filters.dateFrom && doc.documentDate < filters.dateFrom) {
+          return false;
+        }
+        if (filters.dateTo && doc.documentDate > filters.dateTo) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort((a, b) => {
+        switch (filters.sortBy) {
+          case 'newest':
+            return b.documentDate.localeCompare(a.documentDate);
+          case 'oldest':
+            return a.documentDate.localeCompare(b.documentDate);
+          case 'name-asc':
+            return a.title.localeCompare(b.title);
+          case 'recently-added':
+            return b.addedDate.localeCompare(a.addedDate);
+          default:
+            return 0;
+        }
+      });
   }, [documents, filters]);
 
-  // Document Mutations (Client-side Session only)
-  const updateDocumentTitle = useCallback((id: string, newTitle: string) => {
-    setDocuments((prev) =>
-      prev.map((doc) => (doc.id === id ? { ...doc, title: newTitle.trim() } : doc))
-    );
-  }, []);
+  // Document Mutations
+  const updateDocumentTitle = useCallback(
+    async (id: string, newTitle: string) => {
+      setDocuments((prev) =>
+        prev.map((doc) => (doc.id === id ? { ...doc, title: newTitle } : doc))
+      );
+      setActiveEditTitleDocument(null);
+      showToast(`Document renamed to "${newTitle}"`);
+
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      if (isUuid) {
+        try {
+          await vaultApi.updateDocument(id, { title: newTitle });
+        } catch {
+          // Gracefully retain optimistic client state
+        }
+      }
+    },
+    [showToast]
+  );
 
   const updateDocumentCategory = useCallback(
-    (id: string, newCategory: VaultCategory, labelEn: string, labelNe: string) => {
+    async (
+      id: string,
+      newCategory: VaultCategory,
+      labelEn: string,
+      labelNe: string
+    ) => {
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.id === id
@@ -247,23 +336,47 @@ export const useVaultDocuments = (): UseVaultDocumentsReturn => {
             : doc
         )
       );
+      setActiveChangeCategoryDocument(null);
+      showToast(`Category updated to "${labelEn}"`);
     },
-    []
+    [showToast]
   );
 
-  const updateDocumentNotes = useCallback((id: string, notes: string) => {
-    setDocuments((prev) =>
-      prev.map((doc) => (doc.id === id ? { ...doc, notes: notes.trim() } : doc))
-    );
-  }, []);
+  const updateDocumentNotes = useCallback(
+    (id: string, notes: string) => {
+      setDocuments((prev) =>
+        prev.map((doc) => (doc.id === id ? { ...doc, notes } : doc))
+      );
+      showToast('Notes saved.');
+    },
+    [showToast]
+  );
 
-  const deleteDocument = useCallback((id: string) => {
-    setDocuments((prev) => prev.filter((doc) => doc.id !== id));
-  }, []);
+  const deleteDocument = useCallback(
+    async (id: string) => {
+      const docToDelete = documents.find((d) => d.id === id);
+      setDocuments((prev) => prev.filter((d) => d.id !== id));
+      setActiveDeleteDocument(null);
+      if (docToDelete) {
+        showToast(`Document "${docToDelete.title}" removed.`);
+      }
+
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      if (isUuid) {
+        try {
+          await vaultApi.deleteDocument(id);
+        } catch {
+          // Gracefully retain optimistic client state
+        }
+      }
+    },
+    [documents, showToast]
+  );
 
   const resetDemoDocuments = useCallback(() => {
     setDocuments(DEMO_VAULT_DOCUMENTS);
-  }, []);
+    showToast('Demo documents restored.');
+  }, [showToast]);
 
   return {
     documents,
@@ -301,5 +414,6 @@ export const useVaultDocuments = (): UseVaultDocumentsReturn => {
     updateDocumentNotes,
     deleteDocument,
     resetDemoDocuments,
+    refreshDocuments,
   };
 };

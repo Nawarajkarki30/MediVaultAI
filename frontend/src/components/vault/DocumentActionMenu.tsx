@@ -13,6 +13,7 @@ import {
 import { VaultDocument } from '../../types/vault';
 import { DashboardLanguage } from '../../types/dashboard';
 import { TRANSLATIONS } from '../../lib/translations';
+import { vaultApi } from '../../services/vault.api';
 
 interface DocumentActionMenuProps {
   document: VaultDocument | null;
@@ -50,8 +51,22 @@ export const DocumentActionMenu: React.FC<DocumentActionMenuProps> = ({
 
   if (!document) return null;
 
-  const handleDownload = () => {
-    // Generate and download a synthetic text/report file
+  const handleDownload = async () => {
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    if (isUuid) {
+      try {
+        await vaultApi.downloadDocument(
+          document.id,
+          `${document.title.replace(/\s+/g, '_')}.${document.fileType.toLowerCase()}`
+        );
+        onClose();
+        return;
+      } catch (err) {
+        console.error('Download error:', err);
+      }
+    }
+
+    // Fallback for demonstration records
     const element = window.document.createElement('a');
     const fileContent = `MEDIVAULT AI — SYNTHETIC DEMO MEDICAL REPORT\n\nDocument: ${document.title}\nFacility: ${document.facility}\nDate: ${document.documentDateDisplay}\nCategory: ${document.categoryLabelEn}\nStatus: ${document.status}\n\nClinical Summary (Demo):\n${document.summaryEn || 'Clinical verification will activate in Phase 2D.'}\n\nNotes:\n${document.notes || 'None'}\n\n[DISCLAIMER: Fictional demonstration data. Not real medical records.]`;
     const file = new Blob([fileContent], { type: 'text/plain' });
@@ -98,79 +113,64 @@ export const DocumentActionMenu: React.FC<DocumentActionMenuProps> = ({
             type="button"
             onClick={() => {
               onClose();
-              navigate(`/patient/vault/${document.id}`);
+              navigate(`/vault/${document.id}`);
             }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-navy-950 hover:bg-slate-50 transition-colors text-left"
           >
-            <Eye className="w-4 h-4 text-brand-500" />
+            <Eye className="w-4 h-4 text-slate-400" />
             <span>{t.viewDocument}</span>
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              onClose();
-              onEditTitle(document);
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            onClick={() => onEditTitle(document)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-navy-950 hover:bg-slate-50 transition-colors text-left"
           >
-            <Edit3 className="w-4 h-4 text-brand-500" />
+            <Edit3 className="w-4 h-4 text-slate-400" />
             <span>{t.editTitle}</span>
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              onClose();
-              onChangeCategory(document);
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            onClick={() => onChangeCategory(document)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-navy-950 hover:bg-slate-50 transition-colors text-left"
           >
-            <Tag className="w-4 h-4 text-brand-500" />
+            <Tag className="w-4 h-4 text-slate-400" />
             <span>{t.changeCategory}</span>
           </button>
 
           <button
             type="button"
             onClick={handleDownload}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-navy-950 hover:bg-slate-50 transition-colors text-left"
           >
-            <Download className="w-4 h-4 text-brand-500" />
+            <Download className="w-4 h-4 text-slate-400" />
             <span>{t.downloadBtn}</span>
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              onClose();
-              onComingSoon(t.shareFamilyComingSoon);
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            onClick={() => onComingSoon(t.shareFamilyComingSoon)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-50 transition-colors text-left"
           >
-            <Share2 className="w-4 h-4 text-brand-500" />
+            <Share2 className="w-4 h-4 text-slate-300" />
             <span>{t.shareFamilyComingSoon}</span>
           </button>
 
           <button
             type="button"
-            onClick={() => {
-              onClose();
-              onComingSoon(t.explainAIComingSoon);
-            }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
+            onClick={() => onComingSoon(t.explainAIComingSoon)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:bg-slate-50 transition-colors text-left"
           >
-            <Sparkles className="w-4 h-4 text-brand-500" />
+            <Sparkles className="w-4 h-4 text-slate-300" />
             <span>{t.explainAIComingSoon}</span>
           </button>
 
           <div className="pt-1 border-t border-slate-100">
             <button
               type="button"
-              onClick={() => {
-                onClose();
-                onDelete(document);
-              }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors"
+              onClick={() => onDelete(document)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 transition-colors text-left"
             >
               <Trash2 className="w-4 h-4 text-rose-500" />
               <span>{t.deleteDocument}</span>

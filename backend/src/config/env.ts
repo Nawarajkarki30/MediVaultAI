@@ -38,6 +38,43 @@ const envSchema = z.object({
     .string()
     .transform((val) => parseInt(val, 10))
     .default('1'),
+  VAULT_STORAGE_ROOT: z.string().default('./storage_vault'),
+  VAULT_MASTER_KEY: z
+    .string()
+    .length(64, 'VAULT_MASTER_KEY must be a 64-character hex string (32 bytes)')
+    .regex(/^[0-9a-fA-F]+$/, 'VAULT_MASTER_KEY must be hexadecimal')
+    .default('d61eac7e0b0b6372dd0a5695a9b0f1d2ca043abc44daf82e46737d7ff6992c13'),
+  CLAMAV_HOST: z.string().default('127.0.0.1'),
+  CLAMAV_PORT: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number())
+    .default('3310'),
+  CLAMAV_TIMEOUT_MS: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number())
+    .default('10000'),
+  MAX_FILE_SIZE_BYTES: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number())
+    .default('10485760'),
+  PATIENT_QUOTA_BYTES: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number())
+    .default('104857600'),
+  MAX_CONCURRENT_CRYPTO_OPS: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number().min(1).max(20))
+    .default('5'),
+  UPLOAD_REQUEST_TIMEOUT_MS: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number())
+    .default('30000'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

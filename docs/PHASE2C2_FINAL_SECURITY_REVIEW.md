@@ -182,3 +182,4 @@ To maintain academic and professional integrity, the following limitations are e
 2. **Key Storage:** Master KEK is managed via environment configuration rather than a physical Hardware Security Module (HSM).
 3. **OCR/VLM Processing:** Document text extraction is strictly deferred to Phase 2D; uploaded files are stored safely as encrypted blobs without automated clinical parsing.
 4. **Backup Erasure:** Permanent deletion applies immediately to live storage; complete eradication from rolling backup snapshots occurs over a 30-day snapshot expiration window.
+
