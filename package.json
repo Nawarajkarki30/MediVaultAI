@@ -19,7 +19,10 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,css}\"",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "prisma:generate": "npm run generate --workspace=@medivault/database",
-    "prisma:migrate": "npm run migrate:dev --workspace=@medivault/database"
+    "prisma:migrate": "npm run migrate:dev --workspace=@medivault/database",
+    "db:verify": "tsx scripts/verify-db.ts",
+    "docker:db:up": "powershell scripts/start-postgres.ps1",
+    "docker:db:down": "docker compose down"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",

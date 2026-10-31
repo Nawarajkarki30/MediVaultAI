@@ -11,9 +11,9 @@ In accordance with Phase 1 requirements:
 
 ---
 
-## 2. Phase 1 Schema (Current Implementation)
+## 2. Active Schema (Phase 1 + Phase 2A Implementation)
 
-The active Prisma schema is located at `database/prisma/schema.prisma`:
+The active Prisma schema is located at `database/prisma/schema.prisma` with version-controlled migrations in `database/prisma/migrations/20261031000000_init_auth/`:
 
 ```prisma
 datasource db {
@@ -25,7 +25,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
-/// Baseline system health and version audit model.
+enum Role {
+  PATIENT
+  FAMILY_MEMBER
+  CAREGIVER
+  ADMIN
+}
+
 model SystemHealth {
   id        String   @id @default(uuid())
   service   String   @unique @default("medivault-backend")
@@ -33,8 +39,66 @@ model SystemHealth {
   version   String   @default("0.1.0")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
   @@map("system_health")
+}
+
+model User {
+  id              String    @id @default(uuid())
+  fullName        String
+  email           String    @unique
+  passwordHash    String
+  role            Role      @default(PATIENT)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  sessions            Session[]
+  verificationTokens  VerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+  @@map("users")
+}
+
+model Session {
+  id         String    @id @default(uuid())
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime  @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("verification_tokens")
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
 }
 ```
 

@@ -1,0 +1,137 @@
+{
+  "loginViewports": [
+    {
+      "viewport": "mobile-320px",
+      "width": 320,
+      "scrollWidth": 320,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "mobile-375px",
+      "width": 375,
+      "scrollWidth": 375,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "mobile-390px",
+      "width": 390,
+      "scrollWidth": 390,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "mobile-430px",
+      "width": 430,
+      "scrollWidth": 430,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "tablet-768px",
+      "width": 768,
+      "scrollWidth": 768,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "tablet-1024px",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "desktop-1440px",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "desktop-1920px",
+      "width": 1920,
+      "scrollWidth": 1920,
+      "hasOverflow": false
+    }
+  ],
+  "registerViewports": [
+    {
+      "viewport": "mobile-320px",
+      "width": 320,
+      "scrollWidth": 320,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "mobile-375px",
+      "width": 375,
+      "scrollWidth": 375,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "mobile-390px",
+      "width": 390,
+      "scrollWidth": 390,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "mobile-430px",
+      "width": 430,
+      "scrollWidth": 430,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "tablet-768px",
+      "width": 768,
+      "scrollWidth": 768,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "tablet-1024px",
+      "width": 1024,
+      "scrollWidth": 1024,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "desktop-1440px",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "hasOverflow": false
+    },
+    {
+      "viewport": "desktop-1920px",
+      "width": 1920,
+      "scrollWidth": 1920,
+      "hasOverflow": false
+    }
+  ],
+  "interactions": [
+    {
+      "test": "Password visibility toggle",
+      "success": true
+    },
+    {
+      "test": "Policy modal open/close",
+      "success": true
+    },
+    {
+      "test": "Protected route unauthenticated redirect",
+      "success": true
+    }
+  ],
+  "consoleErrors": [
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED",
+    "Failed to load resource: net::ERR_CONNECTION_REFUSED"
+  ]
+}

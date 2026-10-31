@@ -1,5 +1,6 @@
 import express, { Application } from 'express';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import { corsMiddleware } from './middleware/cors';
 import { requestLogger } from './middleware/requestLogger';
@@ -20,6 +21,9 @@ export const createApp = (): Application => {
 
   // CORS restricted to configured origins
   app.use(corsMiddleware);
+
+  // Cookie parser for reading HttpOnly session & CSRF tokens
+  app.use(cookieParser(env.SESSION_SECRET));
 
   // Body parsers
   app.use(express.json({ limit: '1mb' }));

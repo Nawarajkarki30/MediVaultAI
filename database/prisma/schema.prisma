@@ -1,5 +1,5 @@
 // MediVault AI — Database Schema
-// Phase 1: Foundation Schema
+// Phase 1 Foundation + Phase 2A Authentication Entities
 
 generator client {
   provider = "prisma-client-js"
@@ -11,8 +11,6 @@ datasource db {
 }
 
 /// Baseline system health and version audit model.
-/// Full domain entities (Users, MedicalDocuments, FamilyPermissions, AIExplanations, Caregivers, AuditLogs)
-/// are planned for Phase 2 and documented in docs/DATABASE.md.
 model SystemHealth {
   id        String   @id @default(uuid())
   service   String   @unique @default("medivault-backend")
@@ -24,3 +22,85 @@ model SystemHealth {
   @@map("system_health")
 }
 
+/// Extensible system role enum.
+/// Public registration is strictly restricted to PATIENT.
+enum Role {
+  PATIENT
+  FAMILY_MEMBER
+  CAREGIVER
+  ADMIN
+}
+
+/// User account entity.
+model User {
+  id              String    @id @default(uuid())
+  fullName        String
+  email           String    @unique
+  passwordHash    String
+  role            Role      @default(PATIENT)
+  emailVerifiedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relationships
+  sessions             Session[]
+  verificationTokens   VerificationToken[]
+  passwordResetTokens  PasswordResetToken[]
+
+  @@map("users")
+}
+
+/// Active user sessions for stateful token-based cookie authentication.
+/// Stores SHA-256 hash of random session token, never raw cookie values.
+model Session {
+  id         String    @id @default(uuid())
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+/// Time-limited email verification tokens.
+/// Stores SHA-256 hash of random token string.
+model VerificationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("verification_tokens")
+}
+
+/// Time-limited password reset tokens.
+/// Stores SHA-256 hash of random token string.
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([tokenHash])
+  @@index([expiresAt])
+  @@map("password_reset_tokens")
+}

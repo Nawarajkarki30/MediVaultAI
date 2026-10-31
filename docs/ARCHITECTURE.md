@@ -40,7 +40,8 @@ The system is organized as an enterprise-grade monorepo using **npm workspaces**
 |   PostgreSQL Database                                                   |
 |   +-----------------------------------------------------------------+   |
 |   | Phase 1: system_health (Health verification & version baseline) |   |
-|   | Phase 2 (Planned): users, medical_documents, ai_explanations     |   |
+|   | Phase 2A: users, sessions, verification_tokens, reset_tokens     |   |
+|   | Phase 2B (Planned): medical_documents, ai_explanations          |   |
 |   | Phase 3 (Planned): family_permissions, caregivers, audit_logs   |   |
 |   +-----------------------------------------------------------------+   |
 +-------------------------------------------------------------------------+
@@ -52,10 +53,10 @@ The system is organized as an enterprise-grade monorepo using **npm workspaces**
 
 ```
 medivault-ai/
-├── frontend/    -> Presentation tier: React 19, Tailwind CSS, React Router
-├── backend/     -> Application tier: Node.js, Express, Zod, Helmet, TypeScript
+├── frontend/    -> Presentation tier: React 19, Tailwind CSS, React Router, Auth Context
+├── backend/     -> Application tier: Node.js, Express, Argon2id, Zod, Helmet, TypeScript
 ├── database/    -> Persistence tier: Prisma ORM, migrations, PostgreSQL schema
-└── docs/        -> Engineering and architecture specifications
+└── docs/        -> Engineering, architecture, and security specifications
 ```
 
 ### 2.1 Workspace Isolation Rules

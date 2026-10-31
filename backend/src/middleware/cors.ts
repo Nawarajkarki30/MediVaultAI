@@ -15,7 +15,13 @@ const corsOptions: CorsOptions = {
     return callback(new Error(`Origin ${origin} not allowed by CORS policy`));
   },
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: [
+    'Content-Type',
+    'Authorization',
+    'X-Requested-With',
+    'X-CSRF-Token',
+    'X-XSRF-Token',
+  ],
   credentials: true,
   maxAge: 86400, // 24 hours
 };

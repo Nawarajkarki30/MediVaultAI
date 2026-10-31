@@ -17,16 +17,16 @@ Patients routinely face fragmented paper records, laboratory tests with intimida
 3. **Family Sharing Circle:** Granular, revocable permissions so loved ones stay informed.
 4. **Verified Caregiver Assistance:** Scoped non-medical support for elderly and recovering patients.
 
-### Phase 1 Scope (Current Phase)
+### Phase Status
 
-Phase 1 delivers the **complete full-stack architecture foundation and the approved landing page**:
-
-- Production-grade monorepo setup using **npm workspaces**.
-- Responsive, accessible landing page faithfully implementing the **approved wireframe**.
-- An interactive, pure React/CSS **Dashboard Preview** with simulated medical reports and bilingual AI explanations.
-- Express API foundation with security middleware (Helmet, CORS), structured request logging, and a hardened `/api/health` telemetry endpoint.
-- PostgreSQL and Prisma ORM foundation ready for Phase 2 migrations.
-- Vitest and Supertest testing suites.
+- **Phase 1: Foundation & Landing Page:** Completed & Audited.
+- **Phase 2A: Secure Patient Authentication & Registration:** Completed & Audited.
+  - Full-stack patient authentication with Argon2id hashing and SHA-256 tokens at rest.
+  - HttpOnly cookie sessions, Double-Submit CSRF protection, and rate limiting.
+  - Desktop & mobile wireframe-matching `/auth/login` and `/auth/register` pages.
+  - Email verification workflow and password recovery screens (`/auth/verify-email`, `/auth/forgot-password`, `/auth/reset-password`).
+  - Authenticated patient dashboard shell (`/patient/dashboard`) with zero fake clinical data.
+- **Phase 2B: Personal Health Vault & Ingestion:** Next scheduled phase.
 
 ---
 

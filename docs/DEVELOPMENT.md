@@ -32,11 +32,23 @@ This project uses **npm workspaces** to manage packages across `frontend`, `back
 npm install
 ```
 
-### 2.3 Generate Prisma Client
+### 2.3 Database Setup (PostgreSQL)
+
+Launch PostgreSQL using Docker or local service:
 
 ```bash
+# Launch PostgreSQL 16 container with Docker Compose
+npm run docker:db:up
+
+# Verify connection to PostgreSQL
+npm run db:verify
+
+# Generate Prisma client and apply migrations
 npm run prisma:generate
+npm run prisma:migrate
 ```
+
+If Docker Desktop is not running, start Docker Desktop from your Windows applications menu first, then execute `npm run docker:db:up`.
 
 ### 2.4 Start Development Servers
 

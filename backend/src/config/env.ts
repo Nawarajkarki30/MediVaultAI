@@ -16,9 +16,28 @@ const envSchema = z.object({
   API_PREFIX: z.string().default('/api'),
   ALLOWED_ORIGINS: z
     .string()
-    .default('http://localhost:5173,http://127.0.0.1:5173')
+    .default(
+      'http://localhost:5173,http://127.0.0.1:5173,http://localhost:4206,http://127.0.0.1:4206'
+    )
     .transform((val) => val.split(',').map((origin) => origin.trim())),
+  APP_URL: z.string().default('http://localhost:5173'),
   DATABASE_URL: z.string().optional(),
+  SESSION_SECRET: z
+    .string()
+    .min(32, 'SESSION_SECRET must be at least 32 characters long')
+    .default('medivault_dev_secret_key_needs_to_be_at_least_32_characters_long!'),
+  SESSION_TTL_HOURS: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .default('72'),
+  VERIFICATION_TOKEN_TTL_HOURS: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .default('24'),
+  PASSWORD_RESET_TOKEN_TTL_HOURS: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .default('1'),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

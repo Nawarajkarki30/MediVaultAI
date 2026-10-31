@@ -75,14 +75,34 @@ This document provides a clear breakdown of features currently implemented in **
 
 ---
 
-## 2. Planned Phase 2: Document Processing & AI Engine
+## 2. Phase 2A: Secure Patient Authentication & Registration (Completed)
 
-These features are planned and architected, but **not yet active** in Phase 1:
+### ✅ Implemented Capabilities
 
-- **User Authentication & Session Management:**
-  - Secure email/password registration with argon2 password hashing.
-  - JWT access tokens with short TTL and HTTP-only refresh tokens.
-  - Role-Based Access Control (`PATIENT`, `FAMILY_MEMBER`, `CAREGIVER`, `ADMIN`).
+#### 2.1 Backend Authentication API
+
+- `POST /api/auth/register`: Public PATIENT registration with Argon2id hashing, input sanitization, and verification token generation.
+- `POST /api/auth/login`: Credential validation, email verification restriction check, and HttpOnly session cookie issuance.
+- `POST /api/auth/logout`: Server-side session revocation and cookie clearance.
+- `GET /api/auth/me`: Authenticated user profile retrieval with session touch.
+- `POST /api/auth/verify-email`: One-time token verification activating patient accounts.
+- `POST /api/auth/resend-verification`: Rate-limited token resend with anti-enumeration response.
+- `POST /api/auth/forgot-password` & `POST /api/auth/reset-password`: Time-limited password recovery with automatic session revocation.
+- `GET /api/auth/csrf`: Double-submit CSRF cookie issuance.
+
+#### 2.2 Responsive UI & Wireframe Fidelity
+
+- **Login Page (`/auth/login`):** Two-column desktop and single-column mobile layouts matching approved wireframe with 4 value propositions, patient illustration with script callout, password toggle, disabled social logins, and medical disclaimer.
+- **Registration Page (`/auth/register`):** Step 1 (form with password strength meter, confirm password, Terms/Privacy acceptance modal) and Step 2 (email verification notice with countdown and dev 1-click preview).
+- **Patient Dashboard Shell (`/patient/dashboard`):** Minimal authenticated dashboard shell with verified status badge, account metadata, working logout, and Phase 2B roadmap cards with zero fake clinical data.
+- **Access Guarding:** `<ProtectedRoute>` component protecting authenticated routes and ensuring email verification before vault access.
+
+---
+
+## 3. Planned Phase 2B: Document Processing & AI Engine
+
+These features are planned and architected, but **not yet active** in Phase 2A:
+
 - **Medical Document Ingestion & Storage:**
   - Multi-file drag-and-drop uploader supporting PDF, JPEG, PNG, HEIC.
   - Virus scanning and metadata sanitization.
