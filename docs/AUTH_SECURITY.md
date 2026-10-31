@@ -75,24 +75,36 @@ res.cookie('medivault_session', sessionToken, {
 
 ## 4. Cross-Site Request Forgery (CSRF) Protection
 
-MediVault AI implements the Double-Submit Cookie CSRF Defense:
+MediVault AI implements **Cryptographically Session-Bound Anti-CSRF Protection** (Hardened in Phase 2C.4):
 
-1. Upon client initialization or login, the server sets a readable `medivault_csrf_token` cookie containing a 24-byte random token (`crypto.randomBytes(24).toString('hex')`).
-2. The frontend single-page application reads this token and injects it into the `X-CSRF-Token` header for all state-changing requests (`POST`, `PUT`, `PATCH`, `DELETE`).
-3. The backend middleware (`csrfProtection`) verifies that when a `medivault_session` cookie is present, the incoming `X-CSRF-Token` header matches the `medivault_csrf_token` cookie using constant-time string comparison (`timingSafeEqual`).
+1. **Session Binding & HMAC-SHA256:**
+   - CSRF tokens follow the format `<nonce>.<signature>`.
+   - The signature is calculated as `HMAC-SHA256(nonce + ':' + sessionIdentifier, CSRF_SECRET)`.
+   - For authenticated users, `sessionIdentifier` is the SHA-256 hash of their session token (`hashToken(sessionCookie)`).
+   - For guests, `sessionIdentifier` is `'guest'`.
+2. **Double-Submit Header & Cookie:**
+   - The server sets a readable `medivault_csrf_token` cookie (`SameSite=Lax`, `Secure` in prod).
+   - The frontend SPA reads this token and injects it into the `X-CSRF-Token` header for all state-changing requests (`POST`, `PUT`, `PATCH`, `DELETE`).
+3. **Constant-Time Verification (`csrfProtection`):**
+   - The server verifies both double-submit equality (`timingSafeEqual(csrfCookie, csrfHeader)`) AND signature authenticity for the active session.
+   - Any attempt to use a guest CSRF token or a token issued for another user session is rejected with HTTP 403 `CSRF_UNBOUND`.
+4. **Token Rotation & Lifecycle:**
+   - Upon `POST /api/auth/login`, any previous guest CSRF token is rotated to a fresh session-bound token.
+   - Upon `POST /api/auth/logout`, the CSRF cookie is cleared. `POST /api/auth/logout` is strictly protected by `csrfProtection` to prevent forced cross-site logouts.
 
 ---
 
 ## 5. Rate Limiting & Anti-Brute-Force Defenses
 
-In-memory rate limiters protect public endpoints against automated attacks:
+In-memory rate limiters protect public and vault endpoints against automated attacks, using sanitized client IP resolution (`getClientIp()` ignoring spoofed `X-Forwarded-For` when `TRUST_PROXY=false`):
 
-| Endpoint                             | Window     | Max Attempts | Behavior on Exceeded                              |
-| :----------------------------------- | :--------- | :----------- | :------------------------------------------------ |
-| `POST /api/auth/login`               | 15 minutes | 10 per IP    | HTTP 429 Too Many Requests (`Retry-After` header) |
-| `POST /api/auth/register`            | 60 minutes | 10 per IP    | HTTP 429 Too Many Requests                        |
-| `POST /api/auth/resend-verification` | 15 minutes | 5 per IP     | HTTP 429 Too Many Requests                        |
-| `POST /api/auth/forgot-password`     | 15 minutes | 5 per IP     | HTTP 429 Too Many Requests                        |
+| Endpoint                             | Window     | Max Attempts        | Keying Strategy            | Behavior on Exceeded                              |
+| :----------------------------------- | :--------- | :------------------ | :------------------------- | :------------------------------------------------ |
+| `POST /api/auth/login`               | 15 minutes | 10 per IP           | Client IP                  | HTTP 429 Too Many Requests (`Retry-After` header) |
+| `POST /api/auth/register`            | 60 minutes | 10 per IP           | Client IP                  | HTTP 429 Too Many Requests                        |
+| `POST /api/auth/resend-verification` | 15 minutes | 5 per IP            | Client IP                  | HTTP 429 Too Many Requests                        |
+| `POST /api/auth/forgot-password`     | 15 minutes | 5 per IP            | Client IP                  | HTTP 429 Too Many Requests                        |
+| `POST /api/vault/upload`             | 15 minutes | 10 (User) / 30 (IP) | User Account ID & Fallback | HTTP 429 Too Many Requests (`Retry-After` header) |
 
 ---
 

@@ -1,12 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  FileText,
-  MoreVertical,
-  Activity,
-  FileCheck,
-  FileSpreadsheet,
-} from 'lucide-react';
+import { FileText, MoreVertical, Activity, FileCheck, FileSpreadsheet } from 'lucide-react';
 import { VaultDocument, VaultProcessingStatus } from '../../types/vault';
 import { DashboardLanguage } from '../../types/dashboard';
 import { TRANSLATIONS } from '../../lib/translations';
@@ -112,8 +106,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
           </thead>
           <tbody className="divide-y divide-slate-100 text-xs">
             {documents.map((doc) => {
-              const categoryLabel =
-                language === 'en' ? doc.categoryLabelEn : doc.categoryLabelNe;
+              const categoryLabel = language === 'en' ? doc.categoryLabelEn : doc.categoryLabelNe;
 
               return (
                 <tr
@@ -137,9 +130,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                   </td>
 
                   {/* Category */}
-                  <td className="py-3.5 px-4 whitespace-nowrap text-slate-600">
-                    {categoryLabel}
-                  </td>
+                  <td className="py-3.5 px-4 whitespace-nowrap text-slate-600">{categoryLabel}</td>
 
                   {/* Document Date */}
                   <td className="py-3.5 px-4 whitespace-nowrap text-slate-500">
@@ -147,9 +138,7 @@ export const DocumentList: React.FC<DocumentListProps> = ({
                   </td>
 
                   {/* Status */}
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    {getStatusBadge(doc.status)}
-                  </td>
+                  <td className="py-3.5 px-4 whitespace-nowrap">{getStatusBadge(doc.status)}</td>
 
                   {/* File Info */}
                   <td className="py-3.5 px-4 whitespace-nowrap text-slate-400 font-medium">
@@ -188,15 +177,11 @@ export const DocumentList: React.FC<DocumentListProps> = ({
             <div className="flex items-center gap-3 min-w-0">
               {getIcon(doc)}
               <div className="min-w-0 space-y-0.5">
-                <span className="font-bold text-xs text-navy-950 block truncate">
-                  {doc.title}
-                </span>
+                <span className="font-bold text-xs text-navy-950 block truncate">{doc.title}</span>
                 <span className="text-[11px] text-slate-400 block truncate">
                   {doc.facility} • {doc.documentDateDisplay}
                 </span>
-                <div className="pt-0.5">
-                  {getStatusBadge(doc.status)}
-                </div>
+                <div className="pt-0.5">{getStatusBadge(doc.status)}</div>
               </div>
             </div>
 

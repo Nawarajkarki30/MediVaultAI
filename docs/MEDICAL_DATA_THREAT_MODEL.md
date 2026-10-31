@@ -3,15 +3,16 @@
 **Document Version:** 2.0.0 (Post-Security Review Revisions)  
 **Methodology:** OWASP Top 10, OWASP ASVS v4.0 (File Upload & Cryptography), STRIDE  
 **Status:** Approved for Implementation Planning  
-**Classification:** Medical Security Specification  
+**Classification:** Medical Security Specification
 
 ---
 
 ## 1. Scope & Security Objectives
 
-This threat model identifies, analyzes, and establishes verifiable countermeasures for security threats targeting medical document ingestion, storage, processing, and retrieval in MediVault AI. 
+This threat model identifies, analyzes, and establishes verifiable countermeasures for security threats targeting medical document ingestion, storage, processing, and retrieval in MediVault AI.
 
 ### Core Security Objectives:
+
 1. **Patient Data Isolation:** Zero unauthorized cross-tenant or cross-patient document inspection or modification.
 2. **Execution Neutralization:** Medical files (PDFs, images) must remain inert data blobs; active code must never execute in the backend runtime or patient browser.
 3. **Cryptographic Integrity:** Plaintext is never released before the AES-GCM authentication tag is verified.
@@ -21,11 +22,11 @@ This threat model identifies, analyzes, and establishes verifiable countermeasur
 
 ## 2. Threat Actor Profiles
 
-| Threat Actor | Capabilities & Motivation | Attack Vectors |
-|---|---|---|
-| **Malicious Authenticated Patient** | Valid session token; attempts to access or tamper with other patients' medical records or flood server storage. | BOLA/IDOR, path traversal, oversized file flooding, concurrent quota races. |
-| **Unauthenticated External Attacker** | Network access to public ports; attempts to exploit exposed endpoints, bypass authentication, or upload exploits. | Unauthenticated endpoint probing, CSRF, brute force, DDoS. |
-| **Host / Infrastructure Intruder** | Access to host filesystem, Docker daemon, or database backups. | Reading plaintext volumes, stealing unencrypted database dumps. |
+| Threat Actor                          | Capabilities & Motivation                                                                                         | Attack Vectors                                                              |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| **Malicious Authenticated Patient**   | Valid session token; attempts to access or tamper with other patients' medical records or flood server storage.   | BOLA/IDOR, path traversal, oversized file flooding, concurrent quota races. |
+| **Unauthenticated External Attacker** | Network access to public ports; attempts to exploit exposed endpoints, bypass authentication, or upload exploits. | Unauthenticated endpoint probing, CSRF, brute force, DDoS.                  |
+| **Host / Infrastructure Intruder**    | Access to host filesystem, Docker daemon, or database backups.                                                    | Reading plaintext volumes, stealing unencrypted database dumps.             |
 
 ---
 
@@ -36,6 +37,7 @@ The following matrix documents key threats, assessing **Impact (C-I-A)**, **Like
 ---
 
 ### Threat 1: Streaming Unauthenticated AES-GCM Plaintext (Critical Cryptographic Flaw)
+
 - **Description:** Decrypting an AES-GCM ciphertext stream directly to the HTTP response releases plaintext chunks to the user before `decipher.final()` verifies the authentication tag. If ciphertext is tampered with or truncated, unauthenticated plaintext has already escaped to the client.
 - **Impact:** Confidentiality: High (potential padding/plaintext leak), Integrity: Critical (client consumes tampered data).
 - **Likelihood:** High if streaming decryption is used.
@@ -47,6 +49,7 @@ The following matrix documents key threats, assessing **Impact (C-I-A)**, **Like
 ---
 
 ### Threat 2: Cross-Patient Document Access (BOLA / IDOR)
+
 - **Description:** Patient A replaces `documentId` in `GET /api/vault/documents/:id` with Patient B's document ID.
 - **Impact:** Confidentiality: Critical (unauthorized disclosure of sensitive clinical records).
 - **Likelihood:** High (common API vulnerability).
@@ -58,6 +61,7 @@ The following matrix documents key threats, assessing **Impact (C-I-A)**, **Like
 ---
 
 ### Threat 3: Malicious PDFs Evading Naive Keyword Sanitization
+
 - **Description:** An attacker uploads a weaponized PDF containing embedded JavaScript obfuscated via object stream compression (`/ObjStm`), hex encoding (`/Java#53cript`), or type-confusion font exploits that bypass naive string-matching filters.
 - **Impact:** Confidentiality: High (DOM XSS upon in-browser viewing), Integrity: High.
 - **Likelihood:** High.
@@ -71,6 +75,7 @@ The following matrix documents key threats, assessing **Impact (C-I-A)**, **Like
 ---
 
 ### Threat 4: Plaintext Artifacts on Persistent Disk (SSD Forensics)
+
 - **Description:** Uploading files to a temporary disk quarantine directory leaves plaintext remnants on SSD flash sectors that persist after `fs.unlink()` due to wear-leveling algorithms.
 - **Impact:** Confidentiality: High (forensic recovery from physical host).
 - **Likelihood:** Medium.
@@ -85,6 +90,7 @@ The following matrix documents key threats, assessing **Impact (C-I-A)**, **Like
 ---
 
 ### Threat 5: Concurrent Storage Quota Race Conditions
+
 - **Description:** An attacker initiates 10 simultaneous 10 MB uploads across multiple browser tabs to exceed the 100 MB quota before previous uploads have committed.
 - **Impact:** Availability: Medium (storage exhaustion).
 - **Likelihood:** High.
@@ -98,6 +104,7 @@ The following matrix documents key threats, assessing **Impact (C-I-A)**, **Like
 ---
 
 ### Threat 6: Database/Filesystem Inconsistency (Orphaned Files)
+
 - **Description:** The encrypted file is written to disk, but the database transaction fails (or power is lost), leaving an unreferenced file on disk (or vice versa).
 - **Impact:** Integrity: Medium, Availability: Low.
 - **Likelihood:** Medium.
@@ -112,6 +119,7 @@ The following matrix documents key threats, assessing **Impact (C-I-A)**, **Like
 ---
 
 ### Threat 7: Backup Transactional Desynchronization
+
 - **Description:** A database dump and filesystem archive executed simultaneously capture different document sets, leading to corrupt or missing files upon restore.
 - **Impact:** Availability: Critical (failed disaster recovery).
 - **Likelihood:** Medium.

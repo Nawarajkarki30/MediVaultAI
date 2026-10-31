@@ -20,12 +20,8 @@ export const VaultPrivacyNotice: React.FC<VaultPrivacyNoticeProps> = ({ language
           <Lock className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-sm font-bold text-navy-950">
-            {t.privacyNoticeTitle}
-          </h2>
-          <p className="text-[11px] text-slate-400">
-            MediVault AI privacy-first design principles
-          </p>
+          <h2 className="text-sm font-bold text-navy-950">{t.privacyNoticeTitle}</h2>
+          <p className="text-[11px] text-slate-400">MediVault AI privacy-first design principles</p>
         </div>
       </div>
 
@@ -35,9 +31,7 @@ export const VaultPrivacyNotice: React.FC<VaultPrivacyNoticeProps> = ({ language
             <Shield className="w-4 h-4 text-brand-500" />
             <span>Private By Default</span>
           </div>
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            {t.privacyPrivateDefault}
-          </p>
+          <p className="text-[11px] text-slate-500 leading-relaxed">{t.privacyPrivateDefault}</p>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1.5">
@@ -45,9 +39,7 @@ export const VaultPrivacyNotice: React.FC<VaultPrivacyNoticeProps> = ({ language
             <Share2 className="w-4 h-4 text-brand-500" />
             <span>Granular Sharing</span>
           </div>
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            {t.privacyGranularShare}
-          </p>
+          <p className="text-[11px] text-slate-500 leading-relaxed">{t.privacyGranularShare}</p>
         </div>
 
         <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1.5">
@@ -55,15 +47,11 @@ export const VaultPrivacyNotice: React.FC<VaultPrivacyNoticeProps> = ({ language
             <EyeOff className="w-4 h-4 text-brand-500" />
             <span>Revocable Permissions</span>
           </div>
-          <p className="text-[11px] text-slate-500 leading-relaxed">
-            {t.privacyRevocable}
-          </p>
+          <p className="text-[11px] text-slate-500 leading-relaxed">{t.privacyRevocable}</p>
         </div>
       </div>
 
-      <p className="text-[10px] text-slate-400 italic">
-        {t.privacyNoticeNote}
-      </p>
+      <p className="text-[10px] text-slate-400 italic">{t.privacyNoticeNote}</p>
     </section>
   );
 };

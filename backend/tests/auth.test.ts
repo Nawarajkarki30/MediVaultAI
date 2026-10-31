@@ -312,11 +312,15 @@ describe('MediVault AI — Phase 2A Security & Authentication Suite', () => {
     const cookies = loginRes.headers['set-cookie'] as unknown as string[];
     expect(cookies).toBeDefined();
     const sessionCookie = cookies.find((c: string) => c.startsWith('medivault_session='));
+    const csrfCookie = cookies.find((c: string) => c.startsWith('medivault_csrf_token='));
     expect(sessionCookie).toBeDefined();
     expect(sessionCookie).toContain('HttpOnly');
 
-    // Logout
-    const logoutRes = await request(app).post('/api/auth/logout').set('Cookie', sessionCookie!);
+    // Logout with session-bound CSRF token
+    const logoutRes = await request(app)
+      .post('/api/auth/logout')
+      .set('Cookie', [sessionCookie!, csrfCookie!].filter(Boolean))
+      .set('X-CSRF-Token', loginRes.body.data.csrfToken);
 
     expect(logoutRes.status).toBe(200);
 
@@ -413,9 +417,13 @@ describe('MediVault AI — Phase 2A Security & Authentication Suite', () => {
 
     const cookies = loginRes.headers['set-cookie'] as unknown as string[];
     const sessionCookie = cookies.find((c: string) => c.startsWith('medivault_session='));
+    const csrfCookie = cookies.find((c: string) => c.startsWith('medivault_csrf_token='));
 
-    // Perform logout
-    await request(app).post('/api/auth/logout').set('Cookie', sessionCookie!);
+    // Perform logout with session-bound CSRF token
+    await request(app)
+      .post('/api/auth/logout')
+      .set('Cookie', [sessionCookie!, csrfCookie!].filter(Boolean))
+      .set('X-CSRF-Token', loginRes.body.data.csrfToken);
 
     // Replay session cookie
     const replayRes = await request(app).get('/api/auth/me').set('Cookie', sessionCookie!);

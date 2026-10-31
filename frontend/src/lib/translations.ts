@@ -393,14 +393,12 @@ export const TRANSLATIONS: Record<DashboardLanguage, TranslationDictionary> = {
     editDetailsBtn: 'Edit Details (Demo)',
     summaryHeader: 'Extracted Clinical Findings (Demo Summary)',
     uploadModalTitle: 'Upload Medical Document',
-    uploadModalSubtitle:
-      'Select a medical document from your device to test the upload prototype.',
+    uploadModalSubtitle: 'Select a medical document from your device to test the upload prototype.',
     dragDropNotice: 'Drag and drop your file here',
     orBrowseFiles: 'or Browse Files',
     supportedFiles: 'Supported files: PDF, PNG, JPG, JPEG • Maximum file size: 10 MB',
     fileSizeError: 'File exceeds the 10 MB limit (Selected file is',
-    fileTypeError:
-      'Unsupported file type. Please select a valid PDF, PNG, or JPG document.',
+    fileTypeError: 'Unsupported file type. Please select a valid PDF, PNG, or JPG document.',
     uploadNoticePrototype:
       'This is a prototype demonstration. The file will not be uploaded or stored yet. Secure uploads will be implemented in a later phase.',
     continueUploadDemo: 'Continue (Demo)',
@@ -411,8 +409,7 @@ export const TRANSLATIONS: Record<DashboardLanguage, TranslationDictionary> = {
       'Private by default: Only you have access to your personal medical vault.',
     privacyGranularShare:
       'Granular controls: Choose exactly which documents to share and with whom.',
-    privacyRevocable:
-      'Revocable access: Change permissions or revoke family access at any time.',
+    privacyRevocable: 'Revocable access: Change permissions or revoke family access at any time.',
     privacyNoticeNote:
       '* These safeguards describe the planned privacy architecture. All documents currently shown are synthetic prototypes.',
     noVaultDocsFound: 'No medical documents found',
@@ -601,8 +598,7 @@ export const TRANSLATIONS: Record<DashboardLanguage, TranslationDictionary> = {
     backToVault: 'मेरो स्वास्थ्य भल्टमा फर्कनुहोस्',
     originalPreview: 'मूल कागजात पूर्वावलोकन',
     previewUnavailable: 'पूर्वावलोकन उपलब्ध छैन',
-    previewUnavailableDesc:
-      'फेज २C.१ मा यो फाइल ढाँचाका लागि भिजुअल पूर्वावलोकन उपलब्ध छैन।',
+    previewUnavailableDesc: 'फेज २C.१ मा यो फाइल ढाँचाका लागि भिजुअल पूर्वावलोकन उपलब्ध छैन।',
     documentDetails: 'कागजात विवरण',
     notesHeader: 'व्यक्तिगत टिपोट',
     notesPlaceholder: 'यस कागजात बारे आफ्नो टिपोट लेख्नुहोस्...',
@@ -611,14 +607,12 @@ export const TRANSLATIONS: Record<DashboardLanguage, TranslationDictionary> = {
     editDetailsBtn: 'विवरण सम्पादन गर्नुहोस् (नमुना)',
     summaryHeader: 'नमुना क्लिनिकल निष्कर्ष सारांश',
     uploadModalTitle: 'मेडिकल कागजात अपलोड',
-    uploadModalSubtitle:
-      'अपलोड नमुना परीक्षणका लागि आफ्नो डिभाइसबाट मेडिकल कागजात चयन गर्नुहोस्।',
+    uploadModalSubtitle: 'अपलोड नमुना परीक्षणका लागि आफ्नो डिभाइसबाट मेडिकल कागजात चयन गर्नुहोस्।',
     dragDropNotice: 'यहाँ फाइल तानेर ल्याउनुहोस्',
     orBrowseFiles: 'वा फाइल ब्राउज गर्नुहोस्',
     supportedFiles: 'समर्थित फाइल: PDF, PNG, JPG, JPEG • अधिकतम फाइल आकार: १० MB',
     fileSizeError: 'फाइल १० MB भन्दा ठूलो छ (चयन गरिएको फाइल आकार:',
-    fileTypeError:
-      'असमर्थित फाइल ढाँचा। कृपया मान्य PDF, PNG वा JPG कागजात चयन गर्नुहोस्।',
+    fileTypeError: 'असमर्थित फाइल ढाँचा। कृपया मान्य PDF, PNG वा JPG कागजात चयन गर्नुहोस्।',
     uploadNoticePrototype:
       'यो नमुना परीक्षण मात्र हो। फाइल सर्भरमा अपलोड वा भण्डारण हुने छैन। सुरक्षित अपलोड पछिल्लो चरणमा कार्यान्वयन हुनेछ।',
     continueUploadDemo: 'जारी राख्नुहोस् (नमुना)',
@@ -627,8 +621,7 @@ export const TRANSLATIONS: Record<DashboardLanguage, TranslationDictionary> = {
     privacyNoticeTitle: 'गोपनीयता तथा सुरक्षा मापदण्ड (योजनाबद्ध संरचना)',
     privacyPrivateDefault:
       'निजी पूर्वनिर्धारित: तपाईंको स्वास्थ्य भल्टमा तपाईंको मात्र पहुँच हुनेछ।',
-    privacyGranularShare:
-      'विशिष्ट नियन्त्रण: कुन कागजात कोसँग साझा गर्ने निर्णय तपाईंको हातमा।',
+    privacyGranularShare: 'विशिष्ट नियन्त्रण: कुन कागजात कोसँग साझा गर्ने निर्णय तपाईंको हातमा।',
     privacyRevocable:
       'फिर्ता लिन सकिने पहुँच: जुनसुकै बेला साझेदारी अनुमति परिवर्तन वा रद्द गर्न सकिने।',
     privacyNoticeNote:

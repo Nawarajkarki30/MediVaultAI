@@ -8,12 +8,7 @@ interface ChangeCategoryModalProps {
   document: VaultDocument | null;
   onClose: () => void;
   language: DashboardLanguage;
-  onSave: (
-    id: string,
-    newCategory: VaultCategory,
-    labelEn: string,
-    labelNe: string
-  ) => void;
+  onSave: (id: string, newCategory: VaultCategory, labelEn: string, labelNe: string) => void;
 }
 
 export const ChangeCategoryModal: React.FC<ChangeCategoryModalProps> = ({

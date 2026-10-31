@@ -1,15 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  X,
-  Eye,
-  Edit3,
-  Tag,
-  Download,
-  Share2,
-  Sparkles,
-  Trash2,
-} from 'lucide-react';
+import { X, Eye, Edit3, Tag, Download, Share2, Sparkles, Trash2 } from 'lucide-react';
 import { VaultDocument } from '../../types/vault';
 import { DashboardLanguage } from '../../types/dashboard';
 import { TRANSLATIONS } from '../../lib/translations';
@@ -52,7 +43,9 @@ export const DocumentActionMenu: React.FC<DocumentActionMenuProps> = ({
   if (!document) return null;
 
   const handleDownload = async () => {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      document.id
+    );
     if (isUuid) {
       try {
         await vaultApi.downloadDocument(

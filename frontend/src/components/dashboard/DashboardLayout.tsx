@@ -98,9 +98,7 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboard, chi
     }
   };
 
-  const computedActiveTab = location.pathname.startsWith('/patient/vault')
-    ? 'vault'
-    : activeNavTab;
+  const computedActiveTab = location.pathname.startsWith('/patient/vault') ? 'vault' : activeNavTab;
 
   return (
     <div className="min-h-screen bg-brand-bg flex text-slate-800 antialiased selection:bg-brand-500 selection:text-white">

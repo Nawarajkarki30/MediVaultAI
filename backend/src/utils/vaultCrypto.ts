@@ -7,14 +7,14 @@ import { AppError } from './appError';
 
 export interface WrappedDekResult {
   encryptedDek: string; // Base64
-  dekNonce: string;     // Base64 (12 bytes)
-  dekAuthTag: string;   // Base64 (16 bytes)
+  dekNonce: string; // Base64 (12 bytes)
+  dekAuthTag: string; // Base64 (16 bytes)
 }
 
 export interface EncryptDocumentResult {
   ciphertext: Buffer;
-  fileNonce: string;     // Base64 (12 bytes)
-  fileAuthTag: string;   // Base64 (16 bytes)
+  fileNonce: string; // Base64 (12 bytes)
+  fileAuthTag: string; // Base64 (16 bytes)
   sha256Checksum: string;
   wrappedDek: WrappedDekResult;
 }
@@ -118,17 +118,27 @@ export function unwrapDek(
     throw new AppError('Invalid DEK nonce length (must be 12 bytes)', 500, 'CRYPTO_PAYLOAD_ERROR');
   }
   if (dekAuthTag.length !== 16) {
-    throw new AppError('Invalid DEK auth tag length (must be 16 bytes)', 500, 'CRYPTO_PAYLOAD_ERROR');
+    throw new AppError(
+      'Invalid DEK auth tag length (must be 16 bytes)',
+      500,
+      'CRYPTO_PAYLOAD_ERROR'
+    );
   }
 
-  const decipher = crypto.createDecipheriv('aes-256-gcm', masterKek, dekNonce, { authTagLength: 16 });
+  const decipher = crypto.createDecipheriv('aes-256-gcm', masterKek, dekNonce, {
+    authTagLength: 16,
+  });
   decipher.setAAD(Buffer.from('MEDIVAULT:DEK_WRAP:V1', 'utf8'));
   decipher.setAuthTag(dekAuthTag);
 
   try {
     return Buffer.concat([decipher.update(encryptedDek), decipher.final()]);
   } catch {
-    throw new AppError('Failed to unwrap DEK: Master key mismatch or corrupted auth tag', 500, 'CRYPTO_AUTH_FAILED');
+    throw new AppError(
+      'Failed to unwrap DEK: Master key mismatch or corrupted auth tag',
+      500,
+      'CRYPTO_AUTH_FAILED'
+    );
   }
 }
 
@@ -210,7 +220,11 @@ export function decryptDocumentVerified(params: DecryptDocumentParams): Buffer {
   }
   if (fileAuthTag.length !== 16) {
     dek.fill(0);
-    throw new AppError('Invalid file auth tag length (must be 16 bytes)', 500, 'CRYPTO_PAYLOAD_ERROR');
+    throw new AppError(
+      'Invalid file auth tag length (must be 16 bytes)',
+      500,
+      'CRYPTO_PAYLOAD_ERROR'
+    );
   }
 
   // 2. Compute canonical AAD

@@ -50,12 +50,8 @@ describe('MediVault AI — Phase 2C.1 Personal Health Vault Frontend Suite', () 
     renderVault();
 
     expect(screen.getByRole('heading', { level: 1, name: /My Health Vault/i })).toBeInTheDocument();
-    expect(
-      screen.getByText(/Your medical documents, organized in one place/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Private\. Organized\. In Your Control\./i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Your medical documents, organized in one place/i)).toBeInTheDocument();
+    expect(screen.getByText(/Private\. Organized\. In Your Control\./i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Upload Document/i })).toBeInTheDocument();
   });
 
@@ -168,18 +164,10 @@ describe('MediVault AI — Phase 2C.1 Personal Health Vault Frontend Suite', () 
     fireEvent.click(uploadBtn);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Drag and drop your file here/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Supported files: PDF, PNG, JPG, JPEG/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/Maximum file size: 10 MB/i)
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(/This is a prototype demonstration/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Drag and drop your file here/i)).toBeInTheDocument();
+    expect(screen.getByText(/Supported files: PDF, PNG, JPG, JPEG/i)).toBeInTheDocument();
+    expect(screen.getByText(/Maximum file size: 10 MB/i)).toBeInTheDocument();
+    expect(screen.getByText(/This is a prototype demonstration/i)).toBeInTheDocument();
   });
 
   it('10. rejects oversized files in Upload Modal (>10MB)', () => {
@@ -196,9 +184,7 @@ describe('MediVault AI — Phase 2C.1 Personal Health Vault Frontend Suite', () 
 
     fireEvent.change(fileInput, { target: { files: [largeFile] } });
 
-    expect(
-      screen.getByText(/File exceeds the 10 MB limit/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/File exceeds the 10 MB limit/i)).toBeInTheDocument();
   });
 
   it('11. rejects unsupported file formats in Upload Modal (.exe, .zip)', () => {
@@ -212,9 +198,7 @@ describe('MediVault AI — Phase 2C.1 Personal Health Vault Frontend Suite', () 
 
     fireEvent.change(fileInput, { target: { files: [badFile] } });
 
-    expect(
-      screen.getByText(/Unsupported file type/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Unsupported file type/i)).toBeInTheDocument();
   });
 
   it('12. opens Document Action Menu and allows renaming document title', () => {
@@ -287,7 +271,9 @@ describe('MediVault AI — Phase 2C.1 Personal Health Vault Frontend Suite', () 
     expect(screen.getByText('Reviewed')).toBeInTheDocument();
 
     // Notes textarea
-    const notesInput = screen.getByPlaceholderText(/Add your personal notes about this document\.\.\./i);
+    const notesInput = screen.getByPlaceholderText(
+      /Add your personal notes about this document\.\.\./i
+    );
     expect(notesInput).toBeInTheDocument();
 
     fireEvent.change(notesInput, { target: { value: 'Fasting glucose was within range.' } });

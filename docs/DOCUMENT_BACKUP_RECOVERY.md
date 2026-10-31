@@ -2,19 +2,22 @@
 
 **Document Version:** 2.0.0 (Post-Security Review Revisions)  
 **Phase:** Phase 2C.2 Architecture & Planning  
-**Classification:** Operational Security & Business Continuity  
+**Classification:** Operational Security & Business Continuity
 
 ---
 
 ## 1. Dual-Component Backup Architecture & Consistency Problem
 
 MediVault AI's storage model consists of two tightly coupled components:
+
 1. **Relational Database (PostgreSQL 16):** Stores patient records, document metadata, audit logs, and wrapped Data Encryption Keys (DEKs).
 2. **Encrypted Storage Volume (`VAULT_STORAGE_ROOT`):** Stores raw AES-256-GCM encrypted file blobs (`.enc`).
 
 ### 1.1 The Fallacy of Simultaneous Backup
+
 > [!CRITICAL]
 > **Architectural Critique Addressed:** Running `pg_dump` and `tar` simultaneously does **not** guarantee transactional synchronization.
+>
 > - `pg_dump` takes a point-in-time relational snapshot at database timestamp $T_1$.
 > - `tar` or file copying copies directory files over time interval $T_1 \to T_2$.
 > - Any upload, deletion, or metadata edit occurring during this window causes inconsistencies:
@@ -32,25 +35,25 @@ flowchart TD
     subgraph Phase1["1. Quiesce Phase (Read-Only Mode)"]
         Quiesce["Set VAULT_MAINTENANCE_MODE = true\nReject POST /upload, PATCH, DELETE with 503\nAllow GET /read, /download unimpeded"]
     end
-    
+
     subgraph Phase2["2. Snapshot & Manifest Phase"]
         LockDB["Open Repeatable Read Transaction"]
         DumpDB["pg_dump -Fc (Consistent LSN Snapshot)"]
         GenManifest["SELECT storage_key, sha256_checksum, file_size\nFROM document_storage_metadata\nWHERE document.deleted_at IS NULL\n> backup_manifest.json"]
         CloseLock["Close Transaction & Release Quiesce Mode"]
     end
-    
+
     subgraph Phase3["3. Manifest-Driven File Archiving"]
         TarFiles["Archive ONLY Files Enumerated in backup_manifest.json\nfrom active/ directory"]
         VerifyChecksums["Verify SHA-256 Checksums Against Manifest"]
     end
-    
+
     subgraph Phase4["4. Encrypted Packaging"]
         Bundle["tar -cf - db.dump storage.tar.gz backup_manifest.json"]
         EncBundle["Encrypt Bundle using BACKUP_ENCRYPTION_KEY\n(Age / GPG Offline Key)"]
         ColdStore[("Cold Offline Storage Archive")]
     end
-    
+
     Quiesce --> LockDB
     LockDB --> DumpDB
     DumpDB --> GenManifest
@@ -65,12 +68,16 @@ flowchart TD
 ### 2.1 The 4 Backup Protocol Steps
 
 #### Step 1: Quiesce Mode (Read-Only Window)
+
 Prior to snapshotting, the backup orchestrator signals the backend to enter maintenance mode:
+
 - Uploads and deletions return HTTP `503 Service Unavailable` with `Retry-After: 60`.
 - Active document reads and downloads continue without disruption.
 
 #### Step 2: Consistent Database Snapshot & Manifest Generation
+
 Inside a PostgreSQL repeatable-read transaction:
+
 ```bash
 # Export consistent database dump
 docker exec -t medivault-postgres pg_dump -U postgres -d medivault_dev -Fc -f /backup/db_snapshot.dump
@@ -82,14 +89,19 @@ docker exec -t medivault-postgres psql -U postgres -d medivault_dev -t -A -F"," 
 ```
 
 #### Step 3: Manifest-Driven Blob Archiving
+
 The archive utility reads `manifest.csv` and copies **strictly the files enumerated in the manifest**:
+
 ```bash
 tar -czf /backup/storage_snapshot.tar.gz -T <(cut -d, -f1 /backup/manifest.csv | awk '{print "active/"substr($1,1,2)"/"substr($1,3,2)"/"$1".enc"}') -C "$VAULT_STORAGE_ROOT"
 ```
+
 Any files uploaded after the snapshot or pending staging files are excluded.
 
 #### Step 4: Backup Encryption & Checksums
+
 The bundle is cryptographically sealed with an independent offline administrative key:
+
 ```bash
 sha256sum db_snapshot.dump storage_snapshot.tar.gz manifest.csv > manifest.sha256
 tar -cf - db_snapshot.dump storage_snapshot.tar.gz manifest.csv manifest.sha256 | age -r age1admin... > medivault_backup_$(date +%Y%m%d_%H%M%S).tar.age
@@ -141,7 +153,11 @@ export async function reconcileVault(
     });
   }
 
-  return { activeCount: expectedKeys.size, orphansCount: orphaned.length, missingCount: missing.length };
+  return {
+    activeCount: expectedKeys.size,
+    orphansCount: orphaned.length,
+    missingCount: missing.length,
+  };
 }
 ```
 
@@ -150,12 +166,14 @@ export async function reconcileVault(
 ## 4. Disaster Recovery & Restoration Runbook
 
 ### Prerequisites for Recovery:
+
 1. Encrypted backup bundle (`medivault_backup_*.tar.age`).
 2. Administrative decryption key (`admin.key`).
 3. Master Key Encryption Key (`VAULT_MASTER_KEY`) matching the backup's `keyVersion`.
 4. Clean Docker environment with PostgreSQL 16 container.
 
 ### Step-by-Step Restoration Procedure:
+
 ```bash
 # 1. Decrypt backup archive
 age -d -i admin.key medivault_backup_20261031.tar.age | tar -xf -
@@ -173,6 +191,18 @@ tar -xzf storage_snapshot.tar.gz -C "$VAULT_STORAGE_ROOT"
 npm run vault:reconcile
 ```
 
+### 4.2 Automated Isolated Disaster Recovery Verification
+
+In Phase 2C.4, an automated disaster recovery test was implemented in `scripts/vault-disaster-recovery-test.ts` (`npm run vault:disaster-recovery:test`):
+
+1. **Point-in-Time Database Dump:** Uses `docker exec medivault-postgres pg_dump` to create an atomic SQL dump of `medivault_dev`.
+2. **Encrypted Blob Snapshot:** Archives active `.enc` files and generates a cryptographic `manifest.json`.
+3. **Isolated Test Database:** Creates a dedicated disposable PostgreSQL database: `medivault_restore_test`.
+4. **Relational Restoration:** Restores the database dump into `medivault_restore_test` via `psql`.
+5. **Scratch Storage Restoration:** Unpacks encrypted blobs into a separate scratch storage directory.
+6. **Decryption & Checksum Verification:** Connects an independent Prisma client to `medivault_restore_test`, unwraps DEKs using the Master KEK, decrypts files, and verifies SHA-256 hashes against original fixtures.
+7. **Clean Teardown:** Drops `medivault_restore_test` and deletes scratch directories. `medivault_dev` is never altered.
+
 ---
 
 ## 5. Document Deletion Lifecycle & Backup Privacy Limitations
@@ -184,14 +214,14 @@ stateDiagram-v2
     AVAILABLE --> SOFT_DELETED: Patient deletes document (DELETE /api/vault/:id)
     SOFT_DELETED --> RESTORED: Patient cancels deletion (Within 30 days)
     SOFT_DELETED --> HARD_PURGED: Background cleaner (After 30 days)
-    
+
     note right of SOFT_DELETED
       - deletedAt timestamp set
       - Excluded from active lists
       - Moved to active/ -> deleted/
       - DEK remains in DB
     end note
-    
+
     note right of HARD_PURGED
       - Database records deleted
       - Wrapped DEK permanently destroyed
@@ -201,20 +231,25 @@ stateDiagram-v2
 ```
 
 ### 5.1 Soft Deletion (Immediate User Experience)
+
 When a patient clicks "Delete" and confirms:
+
 1. `MedicalDocument.deletedAt` is set to `now()`.
 2. Document is immediately hidden from `/patient/vault` and all patient dashboard counts.
 3. The file blob is moved from `active/` to `deleted/`.
 4. The patient has a 30-day grace window to request restoration.
 
 ### 5.2 Hard Purge & Cryptographic Shredding
+
 After 30 days, an automated maintenance worker permanently purges the record:
+
 1. Delete `DocumentStorageMetadata` and `MedicalDocument` from PostgreSQL.
 2. The wrapped DEK is destroyed. **This achieves cryptographic shredding**: even if the ciphertext blob was somehow retained on flash storage or historical backup snapshots, it is now mathematically impossible to decrypt.
 3. The storage file blob in `deleted/` is unlinked.
 
 ### 5.3 Honest Disclosure on Backup Retention Limitations
+
 > [!WARNING]
-> **Backup Retention Boundary:** When a patient permanently deletes a document, live database records and physical storage files are eradicated immediately. However, **historical backup snapshots taken prior to deletion still contain copies of the encrypted blob and wrapped DEK**. 
-> 
+> **Backup Retention Boundary:** When a patient permanently deletes a document, live database records and physical storage files are eradicated immediately. However, **historical backup snapshots taken prior to deletion still contain copies of the encrypted blob and wrapped DEK**.
+>
 > In accordance with healthcare data engineering standards, permanent deletion guarantees apply to **live and operational storage immediately**, while complete eradication across backups occurs naturally as rolling backup snapshots age out of the 30-day retention window.

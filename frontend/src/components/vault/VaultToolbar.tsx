@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Search,
-  SlidersHorizontal,
-  LayoutGrid,
-  List,
-  RotateCcw,
-} from 'lucide-react';
+import { Search, SlidersHorizontal, LayoutGrid, List, RotateCcw } from 'lucide-react';
 import {
   VaultCategory,
   VaultFileType,
@@ -55,8 +49,16 @@ export const VaultToolbar: React.FC<VaultToolbarProps> = ({
     { id: 'lab-reports', label: t.catLabReports, count: categoryCounts['lab-reports'] },
     { id: 'prescriptions', label: t.catPrescriptions, count: categoryCounts.prescriptions },
     { id: 'imaging-reports', label: t.catImaging, count: categoryCounts['imaging-reports'] },
-    { id: 'discharge-summaries', label: t.catDischarge, count: categoryCounts['discharge-summaries'] },
-    { id: 'consultation-notes', label: t.catConsultation, count: categoryCounts['consultation-notes'] },
+    {
+      id: 'discharge-summaries',
+      label: t.catDischarge,
+      count: categoryCounts['discharge-summaries'],
+    },
+    {
+      id: 'consultation-notes',
+      label: t.catConsultation,
+      count: categoryCounts['consultation-notes'],
+    },
     { id: 'other', label: t.catOther, count: categoryCounts.other },
   ];
 
@@ -164,9 +166,7 @@ export const VaultToolbar: React.FC<VaultToolbarProps> = ({
           >
             <SlidersHorizontal className="w-4 h-4 text-brand-500" />
             <span>{t.filterPanelTitle}</span>
-            {isFiltered && (
-              <span className="w-2 h-2 rounded-full bg-brand-500" />
-            )}
+            {isFiltered && <span className="w-2 h-2 rounded-full bg-brand-500" />}
           </button>
 
           {/* Mobile Grid/List toggle */}
@@ -176,9 +176,7 @@ export const VaultToolbar: React.FC<VaultToolbarProps> = ({
               onClick={() => onViewModeChange('grid')}
               aria-label="Grid view"
               className={`p-2 rounded-lg text-xs transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-brand-500 text-white shadow-2xs'
-                  : 'text-slate-600'
+                viewMode === 'grid' ? 'bg-brand-500 text-white shadow-2xs' : 'text-slate-600'
               }`}
             >
               <LayoutGrid className="w-4 h-4" />
@@ -188,9 +186,7 @@ export const VaultToolbar: React.FC<VaultToolbarProps> = ({
               onClick={() => onViewModeChange('list')}
               aria-label="List view"
               className={`p-2 rounded-lg text-xs transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-brand-500 text-white shadow-2xs'
-                  : 'text-slate-600'
+                viewMode === 'list' ? 'bg-brand-500 text-white shadow-2xs' : 'text-slate-600'
               }`}
             >
               <List className="w-4 h-4" />
@@ -218,9 +214,7 @@ export const VaultToolbar: React.FC<VaultToolbarProps> = ({
                 <span>{chip.label}</span>
                 <span
                   className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                    isActive
-                      ? 'bg-white/20 text-white'
-                      : 'bg-slate-100 text-slate-600'
+                    isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
                   }`}
                 >
                   {chip.count}

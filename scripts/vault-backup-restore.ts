@@ -63,7 +63,9 @@ async function runBackupAndRestoreTest() {
     });
 
     if (records.length === 0) {
-      console.log('No active records found. Creating synthetic test document for backup validation...');
+      console.log(
+        'No active records found. Creating synthetic test document for backup validation...'
+      );
       const syntheticPlaintext = Buffer.from('SYNTHETIC MEDICAL BACKUP VERIFICATION REPORT DATA');
       const testUser = await prisma.user.create({
         data: {
@@ -187,12 +189,18 @@ async function runBackupAndRestoreTest() {
     // ==========================================
     // STEP 3: CRYPTOGRAPHIC VERIFICATION OF RESTORED BLOBS
     // ==========================================
-    console.log('[3/4] Verifying cryptographic authenticity and decryptability of all restored files...');
+    console.log(
+      '[3/4] Verifying cryptographic authenticity and decryptability of all restored files...'
+    );
     for (const item of loadedManifest.documents) {
       const backupBlobPath = path.join(backupDataDir, `${item.storageKey}.enc`);
       const restoredCiphertext = await fs.readFile(backupBlobPath);
 
-      expectValue(restoredCiphertext.length, item.ciphertextBytes, `Ciphertext size for ${item.storageKey}`);
+      expectValue(
+        restoredCiphertext.length,
+        item.ciphertextBytes,
+        `Ciphertext size for ${item.storageKey}`
+      );
 
       const plaintext = decryptDocumentVerified({
         ciphertextBuffer: restoredCiphertext,
@@ -215,7 +223,9 @@ async function runBackupAndRestoreTest() {
       verifiedCount++;
     }
 
-    console.log(`✔ Restored and cryptographically verified: ${verifiedCount}/${loadedManifest.totalDocuments} documents.`);
+    console.log(
+      `✔ Restored and cryptographically verified: ${verifiedCount}/${loadedManifest.totalDocuments} documents.`
+    );
 
     // ==========================================
     // STEP 4: CLEANUP SCRATCH RESTORE DIR & TEST SEED

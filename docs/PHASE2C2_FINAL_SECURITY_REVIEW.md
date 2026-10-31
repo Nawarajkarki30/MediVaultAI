@@ -4,13 +4,14 @@
 **Phase:** Phase 2C.2 — Security Review & Architecture Corrections  
 **Target Milestone:** Phase 2C.3 (Secure Upload Implementation)  
 **Status:** Approved for Implementation Readiness (Analysis & Specifications Only)  
-**Classification:** Medical Security & Cryptographic Review  
+**Classification:** Medical Security & Cryptographic Review
 
 ---
 
 ## 1. Executive Summary & Review Verdict
 
 This document formalizes the resolution of all architectural and cryptographic critiques raised during the Phase 2C.2 Security Review. The revised design addresses:
+
 1. **Authenticated Decryption:** Eliminated streaming AES-GCM decryption; replaced with in-memory **Verify-Before-Release** ensuring authentication tags are 100% verified before any plaintext bytes reach the network.
 2. **PDF Security:** Replaced naive keyword stripping with **safe attachment downloads** and **isolated sandboxed rendering** (null-origin iframe with disabled scripting).
 3. **Backup Consistency:** Eliminated uncoordinated dumps; established a **quiesced manifest backup protocol** and automated reconciliation script.
@@ -24,15 +25,15 @@ This document formalizes the resolution of all architectural and cryptographic c
 
 ## 2. Matrix of Resolved Architecture Critiques
 
-| Review Critique | Root Cause / Vulnerability | Architectural Correction Implemented | Reference Document |
-|---|---|---|---|
-| **1. Unsafe Streaming Decryption** | AES-GCM plaintext was streamed to HTTP before `decipher.final()` verified the auth tag. | Implemented in-memory **Verify-Before-Release**: Decrypt full buffer (max 10MB), verify tag + AAD, and only then write to HTTP response. Concurrency capped at 5. | [`ENCRYPTION_KEY_MANAGEMENT.md`](file:///f:/medivault%20AI/docs/ENCRYPTION_KEY_MANAGEMENT.md) |
-| **2. Flawed PDF Keyword Stripping** | Regex/AST stripping of `/JavaScript` is bypassable via `/ObjStm` compression, hex encoding, or font exploits. | Replaced with **safe download-only** by default (`Content-Disposition: attachment; nosniff`) and isolated page rasterization / null-origin sandboxed PDF.js. | [`SECURE_UPLOAD_SPEC.md`](file:///f:/medivault%20AI/docs/SECURE_UPLOAD_SPEC.md) |
-| **3. Backup Desynchronization** | Simultaneous `pg_dump` and `tar` capture different document sets over time intervals. | Implemented **quiesced manifest protocol**: System enters read-only mode; DB repeatable-read transaction exports exact active manifest; `tar` archives only manifest files. | [`DOCUMENT_BACKUP_RECOVERY.md`](file:///f:/medivault%20AI/docs/DOCUMENT_BACKUP_RECOVERY.md) |
-| **4. Raw DEK Exposure Risk** | Raw DEKs must never be stored in plaintext. | Implemented two-tier envelope encryption: Master KEK wraps DEK using AES-GCM with dedicated nonce and tag. | [`ENCRYPTION_KEY_MANAGEMENT.md`](file:///f:/medivault%20AI/docs/ENCRYPTION_KEY_MANAGEMENT.md) |
-| **5. Plaintext Remnants on Disk** | Temporary disk files leave plaintext on SSD flash blocks due to wear-leveling algorithms. | Ingestion and ClamAV scanning occur entirely in **memory buffers** via TCP `INSTREAM`. True data destruction achieved via **cryptographic shredding**. | [`SECURE_UPLOAD_SPEC.md`](file:///f:/medivault%20AI/docs/SECURE_UPLOAD_SPEC.md) |
-| **6. Disconnected Runtime Assumptions** | Architecture assumed Linux containerized backend (`/var/lib/medivault`). | Audited actual host: Node v23 on Windows 11 with Docker Postgres. Implemented configurable `VAULT_STORAGE_ROOT` and Windows-compatible pathing. | [`PHASE2C2_STORAGE_ARCHITECTURE.md`](file:///f:/medivault%20AI/docs/PHASE2C2_STORAGE_ARCHITECTURE.md) |
-| **7. Quota Race Conditions** | Concurrent uploads across tabs could bypass the 100MB patient quota. | Implemented pessimistic row-level locking: `SELECT id FROM users WHERE id = :userId FOR UPDATE`. | [`SECURE_UPLOAD_SPEC.md`](file:///f:/medivault%20AI/docs/SECURE_UPLOAD_SPEC.md) |
+| Review Critique                         | Root Cause / Vulnerability                                                                                    | Architectural Correction Implemented                                                                                                                                        | Reference Document                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **1. Unsafe Streaming Decryption**      | AES-GCM plaintext was streamed to HTTP before `decipher.final()` verified the auth tag.                       | Implemented in-memory **Verify-Before-Release**: Decrypt full buffer (max 10MB), verify tag + AAD, and only then write to HTTP response. Concurrency capped at 5.           | [`ENCRYPTION_KEY_MANAGEMENT.md`](file:///f:/medivault%20AI/docs/ENCRYPTION_KEY_MANAGEMENT.md)         |
+| **2. Flawed PDF Keyword Stripping**     | Regex/AST stripping of `/JavaScript` is bypassable via `/ObjStm` compression, hex encoding, or font exploits. | Replaced with **safe download-only** by default (`Content-Disposition: attachment; nosniff`) and isolated page rasterization / null-origin sandboxed PDF.js.                | [`SECURE_UPLOAD_SPEC.md`](file:///f:/medivault%20AI/docs/SECURE_UPLOAD_SPEC.md)                       |
+| **3. Backup Desynchronization**         | Simultaneous `pg_dump` and `tar` capture different document sets over time intervals.                         | Implemented **quiesced manifest protocol**: System enters read-only mode; DB repeatable-read transaction exports exact active manifest; `tar` archives only manifest files. | [`DOCUMENT_BACKUP_RECOVERY.md`](file:///f:/medivault%20AI/docs/DOCUMENT_BACKUP_RECOVERY.md)           |
+| **4. Raw DEK Exposure Risk**            | Raw DEKs must never be stored in plaintext.                                                                   | Implemented two-tier envelope encryption: Master KEK wraps DEK using AES-GCM with dedicated nonce and tag.                                                                  | [`ENCRYPTION_KEY_MANAGEMENT.md`](file:///f:/medivault%20AI/docs/ENCRYPTION_KEY_MANAGEMENT.md)         |
+| **5. Plaintext Remnants on Disk**       | Temporary disk files leave plaintext on SSD flash blocks due to wear-leveling algorithms.                     | Ingestion and ClamAV scanning occur entirely in **memory buffers** via TCP `INSTREAM`. True data destruction achieved via **cryptographic shredding**.                      | [`SECURE_UPLOAD_SPEC.md`](file:///f:/medivault%20AI/docs/SECURE_UPLOAD_SPEC.md)                       |
+| **6. Disconnected Runtime Assumptions** | Architecture assumed Linux containerized backend (`/var/lib/medivault`).                                      | Audited actual host: Node v23 on Windows 11 with Docker Postgres. Implemented configurable `VAULT_STORAGE_ROOT` and Windows-compatible pathing.                             | [`PHASE2C2_STORAGE_ARCHITECTURE.md`](file:///f:/medivault%20AI/docs/PHASE2C2_STORAGE_ARCHITECTURE.md) |
+| **7. Quota Race Conditions**            | Concurrent uploads across tabs could bypass the 100MB patient quota.                                          | Implemented pessimistic row-level locking: `SELECT id FROM users WHERE id = :userId FOR UPDATE`.                                                                            | [`SECURE_UPLOAD_SPEC.md`](file:///f:/medivault%20AI/docs/SECURE_UPLOAD_SPEC.md)                       |
 
 ---
 
@@ -178,8 +179,8 @@ Before Phase 2C.3 is certified for production or medical demonstration records, 
 ## 6. Explicit Limitations of the Final-Year Prototype
 
 To maintain academic and professional integrity, the following limitations are explicitly documented:
+
 1. **Single-Node Storage:** Storage is bound to the local host filesystem. Multi-region redundancy or elastic auto-scaling requires migrating to cloud object storage (S3/GCS) in post-capstone phases.
 2. **Key Storage:** Master KEK is managed via environment configuration rather than a physical Hardware Security Module (HSM).
 3. **OCR/VLM Processing:** Document text extraction is strictly deferred to Phase 2D; uploaded files are stored safely as encrypted blobs without automated clinical parsing.
 4. **Backup Erasure:** Permanent deletion applies immediately to live storage; complete eradication from rolling backup snapshots occurs over a 30-day snapshot expiration window.
-

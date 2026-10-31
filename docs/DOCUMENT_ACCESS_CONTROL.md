@@ -2,7 +2,7 @@
 
 **Document Version:** 2.0.0 (Post-Security Review Revisions)  
 **Phase:** Phase 2C.2 Architecture & Planning  
-**Classification:** Core Security Specification  
+**Classification:** Core Security Specification
 
 ---
 
@@ -33,33 +33,34 @@ sequenceDiagram
     API->>Auth: 2. Validate token against sessions table
     Auth-->>API: SafeUser (id: patient-a-id, role: PATIENT)
     Note over API: 3. req.user.id = "patient-a-id"
-    
+
     API->>Repo: 4. findByIdAndOwner("victim-doc-id", "patient-a-id")
     Repo->>DB: 5. SELECT * FROM medical_documents WHERE id = $1 AND owner_id = $2
     DB-->>Repo: null (Document exists, but belongs to patient-b-id)
     Repo-->>API: null
-    
+
     API-->>Attacker: 6. 404 Not Found (Zero leakage of document existence)
     Note over API: 7. Audit log: UNAUTHORIZED_ACCESS_ATTEMPT logged
 ```
 
 ### 2.1 Complete Endpoint Access Matrix
 
-| Endpoint | HTTP Method | Required Role | Ownership Guard Condition | Unauthorized Response |
-|---|---|---|---|---|
-| `/api/vault/documents` | `GET` | `PATIENT` | `WHERE ownerId = req.user.id AND deletedAt IS NULL` | Returns empty list `[]` |
-| `/api/vault/documents/:id` | `GET` | `PATIENT` | `WHERE id = :id AND ownerId = req.user.id` | `404 Not Found` |
-| `/api/vault/documents/:id/preview`| `GET` | `PATIENT` | `WHERE id = :id AND ownerId = req.user.id` | `404 Not Found` |
-| `/api/vault/documents/:id/download`| `GET` | `PATIENT` | `WHERE id = :id AND ownerId = req.user.id` | `404 Not Found` |
-| `/api/vault/documents/:id` | `PATCH` | `PATIENT` | `WHERE id = :id AND ownerId = req.user.id` | `404 Not Found` |
-| `/api/vault/documents/:id` | `DELETE`| `PATIENT` | `WHERE id = :id AND ownerId = req.user.id` | `404 Not Found` |
-| `/api/vault/upload` | `POST` | `PATIENT` | Implicit: Document created with `ownerId = req.user.id` | `401 / 403` |
+| Endpoint                            | HTTP Method | Required Role | Ownership Guard Condition                               | Unauthorized Response   |
+| ----------------------------------- | ----------- | ------------- | ------------------------------------------------------- | ----------------------- |
+| `/api/vault/documents`              | `GET`       | `PATIENT`     | `WHERE ownerId = req.user.id AND deletedAt IS NULL`     | Returns empty list `[]` |
+| `/api/vault/documents/:id`          | `GET`       | `PATIENT`     | `WHERE id = :id AND ownerId = req.user.id`              | `404 Not Found`         |
+| `/api/vault/documents/:id/preview`  | `GET`       | `PATIENT`     | `WHERE id = :id AND ownerId = req.user.id`              | `404 Not Found`         |
+| `/api/vault/documents/:id/download` | `GET`       | `PATIENT`     | `WHERE id = :id AND ownerId = req.user.id`              | `404 Not Found`         |
+| `/api/vault/documents/:id`          | `PATCH`     | `PATIENT`     | `WHERE id = :id AND ownerId = req.user.id`              | `404 Not Found`         |
+| `/api/vault/documents/:id`          | `DELETE`    | `PATIENT`     | `WHERE id = :id AND ownerId = req.user.id`              | `404 Not Found`         |
+| `/api/vault/upload`                 | `POST`      | `PATIENT`     | Implicit: Document created with `ownerId = req.user.id` | `401 / 403`             |
 
 ---
 
 ## 3. Analysis of PostgreSQL Row-Level Security (RLS) with Prisma
 
 PostgreSQL Row-Level Security (RLS) enables the database engine to enforce access policies directly on table rows:
+
 ```sql
 CREATE POLICY patient_document_isolation ON medical_documents
   FOR ALL
@@ -71,13 +72,14 @@ CREATE POLICY patient_document_isolation ON medical_documents
 While RLS provides defense-in-depth, its integration with Node.js and Prisma presents concrete architectural risks:
 
 1. **Connection Pooling Re-use:**
-   Prisma maintains a pool of persistent TCP connections to PostgreSQL as a single database superuser/application user (`medivault_dev`). 
+   Prisma maintains a pool of persistent TCP connections to PostgreSQL as a single database superuser/application user (`medivault_dev`).
 2. **Session Context Bleed Risk:**
    Setting session context via `SET LOCAL app.current_user_id = 'user-123'` requires wrapping every single query in an interactive transaction (`prisma.$transaction`). If a connection is recycled without clearing session variables, requests could inherit the identity of a previous user.
 3. **Transaction Overhead:**
    Enforcing interactive transactions for simple read queries introduces round-trip latency and connection pool exhaustion under high concurrency.
 
 ### 3.2 Decision & Strategy
+
 - **Primary Enforcement Layer:** **Application-Level Repository Isolation (Mandatory & Tested).** Every Prisma query in the repository layer strictly requires `ownerId: req.user.id`.
 - **Database RLS Schema Defense-in-Depth:** RLS policies are documented and prepared for enterprise production deployments using Prisma client extensions with transaction-bound `SET LOCAL`, but are **not** enabled on the local dev database in Phase 2C to preserve connection pool stability.
 
@@ -86,7 +88,9 @@ While RLS provides defense-in-depth, its integration with Node.js and Prisma pre
 ## 4. Planned Phase 3 Access Extensions: Family & Caregivers
 
 ### 4.1 Family Sharing Authorization Model (Planned Phase 3)
+
 Family members will access documents exclusively through explicit, time-bounded permission grants:
+
 - **No Global Account Delegation:** A family member never logs in as the patient. They log in with their own authenticated account.
 - **Document-Level Permission Table (`DocumentShare`):**
   - `documentId`: Foreign key to `MedicalDocument`.
@@ -98,16 +102,18 @@ Family members will access documents exclusively through explicit, time-bounded 
   ```sql
   WHERE (doc.owner_id = :userId)
      OR EXISTS (
-       SELECT 1 FROM document_shares ds 
-       WHERE ds.document_id = doc.id 
-         AND ds.shared_with_user_id = :userId 
-         AND ds.revoked_at IS NULL 
+       SELECT 1 FROM document_shares ds
+       WHERE ds.document_id = doc.id
+         AND ds.shared_with_user_id = :userId
+         AND ds.revoked_at IS NULL
          AND ds.expires_at > NOW()
      )
   ```
 
 ### 4.2 Caregiver Non-Medical Boundary (Strict Security Wall)
+
 In MediVault AI, **caregivers are strictly non-medical support companions** (e.g., assisting with mobility, daily companionship, or non-medical routines):
+
 1. **Zero Clinical Access:** Caregivers have **no access** to raw medical documents, radiographs, laboratory reports, or prescriptions.
 2. **Verification does NOT Authorize Records:** A verified caregiver badge confirms background vetting for physical companionship, but grants zero implicit medical document access.
 3. **Scoped Caregiver Dashboard:** Caregivers can view only explicit non-clinical reminders (e.g. "Drink water", "Physical therapy at 10:00 AM"), never clinical findings.

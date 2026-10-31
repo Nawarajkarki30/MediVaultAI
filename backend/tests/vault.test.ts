@@ -24,9 +24,9 @@ describe('MediVault AI — Phase 2C.3 Medical Vault & Security Suite', () => {
 
   // Synthetic PNG buffer with valid PNG magic bytes
   const syntheticPngBuffer = Buffer.from([
-    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
-    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-    0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4, 0x89,
+    0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00, 0x00, 0x1f, 0x15, 0xc4,
+    0x89,
   ]);
 
   // Safe standard EICAR test string
@@ -181,9 +181,7 @@ describe('MediVault AI — Phase 2C.3 Medical Vault & Security Suite', () => {
 
   // 4. Document listing and quota calculation
   it('4. should list active documents and return accurate patient quota metrics', async () => {
-    const res = await request(app)
-      .get('/api/vault/documents')
-      .set('Cookie', patientA.cookie);
+    const res = await request(app).get('/api/vault/documents').set('Cookie', patientA.cookie);
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
@@ -296,9 +294,7 @@ describe('MediVault AI — Phase 2C.3 Medical Vault & Security Suite', () => {
   it('10. should fail-closed with HTTP 503 if ClamAV daemon is unreachable', async () => {
     const offlineClamAv = new ClamAvService('127.0.0.1', 59999, 1000); // Dead port
 
-    await expect(offlineClamAv.scanBuffer(syntheticPdfBuffer)).rejects.toThrowError(
-      /unavailable/
-    );
+    await expect(offlineClamAv.scanBuffer(syntheticPdfBuffer)).rejects.toThrowError(/unavailable/);
   });
 
   // 11. Update document metadata

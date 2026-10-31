@@ -161,4 +161,3 @@ export const InviteFamilyModal: React.FC<InviteFamilyModalProps> = ({
     </div>
   );
 };
-

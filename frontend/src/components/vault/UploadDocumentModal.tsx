@@ -77,9 +77,7 @@ export const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
 
     // Type validation
     const hasValidType = ALLOWED_TYPES.includes(file.type);
-    const hasValidExt = ALLOWED_EXTENSIONS.some((ext) =>
-      file.name.toLowerCase().endsWith(ext)
-    );
+    const hasValidExt = ALLOWED_EXTENSIONS.some((ext) => file.name.toLowerCase().endsWith(ext));
 
     if (!hasValidType && !hasValidExt) {
       setErrorMessage(t.fileTypeError);
@@ -233,9 +231,7 @@ export const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
               <Upload className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <p className="text-xs sm:text-sm font-bold text-navy-950">
-                {t.dragDropNotice}
-              </p>
+              <p className="text-xs sm:text-sm font-bold text-navy-950">{t.dragDropNotice}</p>
               <button
                 type="button"
                 className="text-xs font-semibold text-brand-600 hover:underline inline-block"
@@ -243,9 +239,7 @@ export const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
                 {t.orBrowseFiles}
               </button>
             </div>
-            <p className="text-[11px] text-slate-400 pt-1">
-              {t.supportedFiles}
-            </p>
+            <p className="text-[11px] text-slate-400 pt-1">{t.supportedFiles}</p>
           </div>
         </div>
 
@@ -265,9 +259,7 @@ export const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
                 <FileText className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-bold text-navy-950 truncate">
-                  {selectedFile.name}
-                </p>
+                <p className="text-xs font-bold text-navy-950 truncate">{selectedFile.name}</p>
                 <p className="text-[11px] text-slate-400">
                   {selectedFile.sizeDisplay} • {selectedFile.typeDisplay}
                 </p>
@@ -288,9 +280,7 @@ export const UploadDocumentModal: React.FC<UploadDocumentModalProps> = ({
         {/* Prototype Disclaimer Notice */}
         <div className="p-3.5 rounded-2xl bg-blue-50/70 border border-blue-200/70 flex items-start gap-2.5 text-xs text-brand-900">
           <AlertCircle className="w-4 h-4 text-brand-500 shrink-0 mt-0.5" />
-          <p className="text-[11px] leading-relaxed">
-            {t.uploadNoticePrototype}
-          </p>
+          <p className="text-[11px] leading-relaxed">{t.uploadNoticePrototype}</p>
         </div>
 
         {/* Success Notice */}

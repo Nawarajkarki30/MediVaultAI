@@ -12,7 +12,7 @@ export interface ScanResult {
 }
 
 export interface IClamAvService {
-  scanBuffer(buffer: Buffer): Promise<ScanResult>;
+  scanBuffer(buffer: Buffer, signal?: AbortSignal): Promise<ScanResult>;
   ping(): Promise<boolean>;
 }
 
@@ -64,16 +64,52 @@ export class ClamAvService implements IClamAvService {
   /**
    * Streams an in-memory buffer to ClamAV over TCP using the zINSTREAM protocol.
    * Enforces fail-closed behavior: If ClamAV is offline or times out, throws 503.
+   * Supports cooperative cancellation via AbortSignal.
    */
-  async scanBuffer(buffer: Buffer): Promise<ScanResult> {
+  async scanBuffer(buffer: Buffer, signal?: AbortSignal): Promise<ScanResult> {
+    if (signal?.aborted) {
+      throw new AppError(
+        'Malware scan aborted by client or request timeout',
+        408,
+        'REQUEST_ABORTED'
+      );
+    }
+
     return new Promise((resolve, reject) => {
       const socket = net.createConnection({ host: this.host, port: this.port });
       let responseData = '';
       let finished = false;
 
+      const cleanup = () => {
+        clearTimeout(timer);
+        if (signal) {
+          signal.removeEventListener('abort', onAbort);
+        }
+      };
+
+      const onAbort = () => {
+        if (!finished) {
+          finished = true;
+          cleanup();
+          socket.destroy();
+          reject(
+            new AppError(
+              'Malware scan aborted by client or request timeout',
+              408,
+              'REQUEST_ABORTED'
+            )
+          );
+        }
+      };
+
+      if (signal) {
+        signal.addEventListener('abort', onAbort, { once: true });
+      }
+
       const timer = setTimeout(() => {
         if (!finished) {
           finished = true;
+          cleanup();
           socket.destroy();
           logger.error('ClamAV scan timed out', { timeoutMs: this.timeoutMs });
           reject(
@@ -87,6 +123,11 @@ export class ClamAvService implements IClamAvService {
       }, this.timeoutMs);
 
       socket.on('connect', () => {
+        if (signal?.aborted) {
+          onAbort();
+          return;
+        }
+
         // 1. Send zINSTREAM command with null terminator
         socket.write('zINSTREAM\0');
 
@@ -95,6 +136,10 @@ export class ClamAvService implements IClamAvService {
         let offset = 0;
 
         while (offset < buffer.length) {
+          if (signal?.aborted) {
+            onAbort();
+            return;
+          }
           const end = Math.min(offset + CHUNK_SIZE, buffer.length);
           const chunk = buffer.subarray(offset, end);
           const lengthHeader = Buffer.alloc(4);
@@ -117,7 +162,7 @@ export class ClamAvService implements IClamAvService {
       socket.on('end', () => {
         if (finished) return;
         finished = true;
-        clearTimeout(timer);
+        cleanup();
 
         const trimmed = responseData.trim();
         // Response format: "stream: OK" or "stream: <virus_name> FOUND"
@@ -143,9 +188,13 @@ export class ClamAvService implements IClamAvService {
       socket.on('error', (err) => {
         if (finished) return;
         finished = true;
-        clearTimeout(timer);
+        cleanup();
         socket.destroy();
-        logger.error('Failed to connect to ClamAV daemon', { error: err.message, host: this.host, port: this.port });
+        logger.error('Failed to connect to ClamAV daemon', {
+          error: err.message,
+          host: this.host,
+          port: this.port,
+        });
         reject(
           new AppError(
             'Malware screening service is currently unavailable. Upload rejected (fail-closed).',

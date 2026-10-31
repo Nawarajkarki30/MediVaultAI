@@ -50,8 +50,7 @@ export const DEMO_VAULT_DOCUMENTS: VaultDocument[] = [
     previewType: 'imaging',
     summaryEn:
       'PA chest radiograph shows clear lung parenchyma bilaterally. Cardiothoracic silhouette normal.',
-    summaryNe:
-      'छातीको डिजिटल एक्स-रे: दुबै फोक्सो सामान्य र सफा। मुटुको आकार सामान्य दायराभित्र।',
+    summaryNe: 'छातीको डिजिटल एक्स-रे: दुबै फोक्सो सामान्य र सफा। मुटुको आकार सामान्य दायराभित्र।',
   },
   {
     id: 'doc-03',
@@ -72,8 +71,7 @@ export const DEMO_VAULT_DOCUMENTS: VaultDocument[] = [
     previewType: 'prescription',
     summaryEn:
       'Cholecalciferol 60,000 IU (1 cap weekly for 8 weeks), Cetirizine 10mg as needed for allergies.',
-    summaryNe:
-      'भिटामिन डी३ ६०,००० IU (हप्तामा १ क्याप्सुल), सिट्रिजिन १० mg आवश्यकता अनुसार।',
+    summaryNe: 'भिटामिन डी३ ६०,००० IU (हप्तामा १ क्याप्सुल), सिट्रिजिन १० mg आवश्यकता अनुसार।',
   },
   {
     id: 'doc-04',
@@ -116,8 +114,7 @@ export const DEMO_VAULT_DOCUMENTS: VaultDocument[] = [
     previewType: 'imaging',
     summaryEn:
       'Brain MRI without contrast: Normal intracranial appearances without acute intracranial event.',
-    summaryNe:
-      'कन्ट्रास्ट बिना गरिएको मस्तिष्क एमआरआई: मस्तिष्कको संरचना पूर्णतया सामान्य।',
+    summaryNe: 'कन्ट्रास्ट बिना गरिएको मस्तिष्क एमआरआई: मस्तिष्कको संरचना पूर्णतया सामान्य।',
   },
   {
     id: 'doc-06',
@@ -160,8 +157,7 @@ export const DEMO_VAULT_DOCUMENTS: VaultDocument[] = [
     previewType: 'notes',
     summaryEn:
       'Discussion of dietary sources rich in vitamin D and safe morning sunlight routines.',
-    summaryNe:
-      'भिटामिन डी युक्त खानपान र बिहानी घाममा बस्ने तालिका सम्बन्धी चिकित्सकीय परामर्श।',
+    summaryNe: 'भिटामिन डी युक्त खानपान र बिहानी घाममा बस्ने तालिका सम्बन्धी चिकित्सकीय परामर्श।',
   },
   {
     id: 'doc-08',
@@ -182,8 +178,7 @@ export const DEMO_VAULT_DOCUMENTS: VaultDocument[] = [
     previewType: 'notes',
     summaryEn:
       'Annual Influenza Quadrivalent Vaccine administered left deltoid. No adverse reactions observed.',
-    summaryNe:
-      'वार्षिक इन्फ्लुएन्जा खोप बायाँ पाखुरामा लगाइयो। कुनै प्रतिकूल असर नदेखिएको।',
+    summaryNe: 'वार्षिक इन्फ्लुएन्जा खोप बायाँ पाखुरामा लगाइयो। कुनै प्रतिकूल असर नदेखिएको।',
   },
   {
     id: 'doc-09',
@@ -222,9 +217,11 @@ export const DEMO_VAULT_DOCUMENTS: VaultDocument[] = [
     fileType: 'PDF',
     fileSize: '650 KB',
     status: 'not-available',
-    notes: 'Handwritten pediatric fluoride wash note. Automated extraction not available on this document type.',
+    notes:
+      'Handwritten pediatric fluoride wash note. Automated extraction not available on this document type.',
     previewType: 'unavailable',
-    summaryEn: 'Extraction Not Available: Handwritten note requiring manual clinical transcription.',
+    summaryEn:
+      'Extraction Not Available: Handwritten note requiring manual clinical transcription.',
     summaryNe: 'स्वचालित विवरण उपलब्ध छैन: हस्तलिखित टिपोट भएकाले म्यानुअल पढाइ आवश्यक।',
   },
   {

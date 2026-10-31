@@ -59,77 +59,80 @@ export class VaultRepository {
    * storage metadata, and audit event atomically in a single transaction.
    */
   async createDocumentWithStorage(input: CreateDocumentInput): Promise<DocumentWithStorage> {
-    return prisma.$transaction(async (tx) => {
-      // 1. Pessimistic lock on User row to prevent race conditions on storage quota
-      await tx.$executeRaw`SELECT id FROM users WHERE id = ${input.ownerId} FOR UPDATE`;
+    return prisma.$transaction(
+      async (tx) => {
+        // 1. Pessimistic lock on User row to prevent race conditions on storage quota
+        await tx.$executeRaw`SELECT id FROM users WHERE id = ${input.ownerId} FOR UPDATE`;
 
-      // 2. Compute current cumulative storage usage for active (non-deleted) documents
-      const stats = await tx.medicalDocument.aggregate({
-        where: {
-          ownerId: input.ownerId,
-          deletedAt: null,
-        },
-        _sum: {
-          fileSize: true,
-        },
-        _count: {
-          id: true,
-        },
-      });
+        // 2. Compute current cumulative storage usage for active (non-deleted) documents
+        const stats = await tx.medicalDocument.aggregate({
+          where: {
+            ownerId: input.ownerId,
+            deletedAt: null,
+          },
+          _sum: {
+            fileSize: true,
+          },
+          _count: {
+            id: true,
+          },
+        });
 
-      const currentBytes = stats._sum.fileSize || 0;
-      if (currentBytes + input.fileSize > env.PATIENT_QUOTA_BYTES) {
-        throw new AppError(
-          `Storage quota exceeded: Current usage is ${Math.round(currentBytes / (1024 * 1024))} MB. Maximum allowed is ${Math.round(env.PATIENT_QUOTA_BYTES / (1024 * 1024))} MB.`,
-          400,
-          'QUOTA_EXCEEDED'
-        );
-      }
+        const currentBytes = stats._sum.fileSize || 0;
+        if (currentBytes + input.fileSize > env.PATIENT_QUOTA_BYTES) {
+          throw new AppError(
+            `Storage quota exceeded: Current usage is ${Math.round(currentBytes / (1024 * 1024))} MB. Maximum allowed is ${Math.round(env.PATIENT_QUOTA_BYTES / (1024 * 1024))} MB.`,
+            400,
+            'QUOTA_EXCEEDED'
+          );
+        }
 
-      // 3. Create MedicalDocument with nested StorageMetadata and AuditEvent
-      const createdDoc = await tx.medicalDocument.create({
-        data: {
-          id: input.id,
-          ownerId: input.ownerId,
-          title: input.title,
-          originalFileName: input.originalFileName,
-          mimeType: input.mimeType,
-          category: input.category,
-          fileSize: input.fileSize,
-          status: DocumentStatus.ACTIVE,
-          notes: input.notes,
-          documentDate: input.documentDate,
-          storageMetadata: {
-            create: {
-              storageKey: input.storage.storageKey,
-              storageVersion: input.storage.storageVersion || 1,
-              keyVersion: input.storage.keyVersion || 1,
-              encryptedDek: input.storage.encryptedDek,
-              dekNonce: input.storage.dekNonce,
-              dekAuthTag: input.storage.dekAuthTag,
-              fileNonce: input.storage.fileNonce,
-              fileAuthTag: input.storage.fileAuthTag,
-              sha256Checksum: input.storage.sha256Checksum,
-              ciphertextBytes: input.storage.ciphertextBytes,
+        // 3. Create MedicalDocument with nested StorageMetadata and AuditEvent
+        const createdDoc = await tx.medicalDocument.create({
+          data: {
+            id: input.id,
+            ownerId: input.ownerId,
+            title: input.title,
+            originalFileName: input.originalFileName,
+            mimeType: input.mimeType,
+            category: input.category,
+            fileSize: input.fileSize,
+            status: DocumentStatus.ACTIVE,
+            notes: input.notes,
+            documentDate: input.documentDate,
+            storageMetadata: {
+              create: {
+                storageKey: input.storage.storageKey,
+                storageVersion: input.storage.storageVersion || 1,
+                keyVersion: input.storage.keyVersion || 1,
+                encryptedDek: input.storage.encryptedDek,
+                dekNonce: input.storage.dekNonce,
+                dekAuthTag: input.storage.dekAuthTag,
+                fileNonce: input.storage.fileNonce,
+                fileAuthTag: input.storage.fileAuthTag,
+                sha256Checksum: input.storage.sha256Checksum,
+                ciphertextBytes: input.storage.ciphertextBytes,
+              },
+            },
+            auditEvents: {
+              create: {
+                userId: input.ownerId,
+                eventType: DocumentAuditEventType.DOCUMENT_UPLOADED,
+                ipAddress: input.audit.ipAddress,
+                userAgent: input.audit.userAgent,
+                details: input.audit.details,
+              },
             },
           },
-          auditEvents: {
-            create: {
-              userId: input.ownerId,
-              eventType: DocumentAuditEventType.DOCUMENT_UPLOADED,
-              ipAddress: input.audit.ipAddress,
-              userAgent: input.audit.userAgent,
-              details: input.audit.details,
-            },
+          include: {
+            storageMetadata: true,
           },
-        },
-        include: {
-          storageMetadata: true,
-        },
-      });
+        });
 
-      return createdDoc;
-    });
+        return createdDoc;
+      },
+      { maxWait: 10000, timeout: 15000 }
+    );
   }
 
   /**
@@ -194,7 +197,9 @@ export class VaultRepository {
   /**
    * Fetches storage utilization metrics for a patient.
    */
-  async getStorageStats(ownerId: string): Promise<{ usedBytes: number; quotaBytes: number; documentCount: number }> {
+  async getStorageStats(
+    ownerId: string
+  ): Promise<{ usedBytes: number; quotaBytes: number; documentCount: number }> {
     const stats = await prisma.medicalDocument.aggregate({
       where: {
         ownerId,
@@ -242,7 +247,10 @@ export class VaultRepository {
   /**
    * Soft-deletes a document and records the deletion timestamp.
    */
-  async softDeleteDocument(documentId: string, ownerId: string): Promise<DocumentWithStorage | null> {
+  async softDeleteDocument(
+    documentId: string,
+    ownerId: string
+  ): Promise<DocumentWithStorage | null> {
     const doc = await prisma.medicalDocument.findFirst({
       where: { id: documentId, ownerId, deletedAt: null },
       include: { storageMetadata: true },

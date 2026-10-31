@@ -16,7 +16,8 @@ router.get('/csrf', authController.getCsrf);
 // Public Authentication Endpoints with Rate Limiting
 router.post('/register', registrationRateLimiter, authController.register);
 router.post('/login', loginRateLimiter, authController.login);
-router.post('/logout', authController.logout);
+// State-changing logout protected by CSRF when session cookie is attached
+router.post('/logout', csrfProtection, authController.logout);
 
 // Email Verification
 router.post('/verify-email', authController.verifyEmail);

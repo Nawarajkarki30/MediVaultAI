@@ -20,11 +20,7 @@ export const PatientVaultPage: React.FC = () => {
   const dashboard = useDashboardData();
   const vault = useVaultDocuments();
 
-  const {
-    language,
-    comingSoonFeature,
-    setComingSoonFeature,
-  } = dashboard;
+  const { language, comingSoonFeature, setComingSoonFeature } = dashboard;
 
   const {
     documents,

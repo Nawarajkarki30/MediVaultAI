@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  Printer,
-  Download,
-  AlertCircle,
-} from 'lucide-react';
+import { ZoomIn, ZoomOut, Maximize2, Printer, Download, AlertCircle } from 'lucide-react';
 import { VaultDocument } from '../../types/vault';
 import { DashboardLanguage } from '../../types/dashboard';
 import { TRANSLATIONS } from '../../lib/translations';
@@ -16,10 +9,7 @@ interface DocumentPreviewProps {
   language: DashboardLanguage;
 }
 
-export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
-  document,
-  language,
-}) => {
+export const DocumentPreview: React.FC<DocumentPreviewProps> = ({ document, language }) => {
   const t = TRANSLATIONS[language];
   const [zoomLevel, setZoomLevel] = useState(100);
 
@@ -61,9 +51,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
           >
             <ZoomOut className="w-3.5 h-3.5" />
           </button>
-          <span className="text-[11px] font-mono px-1 min-w-[38px] text-center">
-            {zoomLevel}%
-          </span>
+          <span className="text-[11px] font-mono px-1 min-w-[38px] text-center">{zoomLevel}%</span>
           <button
             type="button"
             onClick={handleZoomIn}
@@ -185,27 +173,76 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
               <div className="w-full h-72 bg-black rounded-xl border border-slate-800 flex items-center justify-center overflow-hidden relative">
                 {document.id === 'doc-02' ? (
                   // X-Ray PA Radiograph simulation
-                  <svg viewBox="0 0 300 240" className="w-full h-full opacity-85" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 300 240"
+                    className="w-full h-full opacity-85"
+                    aria-hidden="true"
+                  >
                     <rect width="300" height="240" fill="#020617" />
                     {/* Spine */}
-                    <path d="M150 20 V 220" stroke="#475569" strokeWidth="6" strokeLinecap="round" />
+                    <path
+                      d="M150 20 V 220"
+                      stroke="#475569"
+                      strokeWidth="6"
+                      strokeLinecap="round"
+                    />
                     {/* Clavicles */}
                     <path d="M90 40 Q 150 48 210 40" stroke="#64748B" strokeWidth="5" fill="none" />
                     {/* Ribs Bilateral */}
-                    <path d="M100 65 Q 150 55 200 65 M90 90 Q 150 78 210 90 M85 115 Q 150 102 215 115 M80 140 Q 150 126 220 140 M85 165 Q 150 150 215 165" stroke="#475569" strokeWidth="3" fill="none" strokeDasharray="3 3" />
+                    <path
+                      d="M100 65 Q 150 55 200 65 M90 90 Q 150 78 210 90 M85 115 Q 150 102 215 115 M80 140 Q 150 126 220 140 M85 165 Q 150 150 215 165"
+                      stroke="#475569"
+                      strokeWidth="3"
+                      fill="none"
+                      strokeDasharray="3 3"
+                    />
                     {/* Lung Fields */}
-                    <path d="M100 70 C 80 120, 80 170, 115 185 C 135 185, 145 150, 145 70 Z" fill="#0F172A" opacity="0.8" />
-                    <path d="M200 70 C 220 120, 220 170, 185 185 C 165 185, 155 150, 155 70 Z" fill="#0F172A" opacity="0.8" />
+                    <path
+                      d="M100 70 C 80 120, 80 170, 115 185 C 135 185, 145 150, 145 70 Z"
+                      fill="#0F172A"
+                      opacity="0.8"
+                    />
+                    <path
+                      d="M200 70 C 220 120, 220 170, 185 185 C 165 185, 155 150, 155 70 Z"
+                      fill="#0F172A"
+                      opacity="0.8"
+                    />
                     {/* Cardiac Silhouette */}
-                    <path d="M140 120 Q 120 150 145 180 Q 165 180 160 140 Z" fill="#1E293B" opacity="0.9" />
+                    <path
+                      d="M140 120 Q 120 150 145 180 Q 165 180 160 140 Z"
+                      fill="#1E293B"
+                      opacity="0.9"
+                    />
                   </svg>
                 ) : (
                   // Brain MRI simulation
-                  <svg viewBox="0 0 300 240" className="w-full h-full opacity-85" aria-hidden="true">
+                  <svg
+                    viewBox="0 0 300 240"
+                    className="w-full h-full opacity-85"
+                    aria-hidden="true"
+                  >
                     <rect width="300" height="240" fill="#020617" />
-                    <circle cx="150" cy="120" r="75" stroke="#334155" strokeWidth="3" fill="#090D16" />
-                    <path d="M110 120 C 110 80, 190 80, 190 120 C 190 160, 110 160, 110 120 Z" stroke="#60A5FA" strokeWidth="1.5" strokeDasharray="4 4" fill="none" />
-                    <path d="M150 65 V 175" stroke="#93C5FD" strokeWidth="1" strokeDasharray="2 2" />
+                    <circle
+                      cx="150"
+                      cy="120"
+                      r="75"
+                      stroke="#334155"
+                      strokeWidth="3"
+                      fill="#090D16"
+                    />
+                    <path
+                      d="M110 120 C 110 80, 190 80, 190 120 C 190 160, 110 160, 110 120 Z"
+                      stroke="#60A5FA"
+                      strokeWidth="1.5"
+                      strokeDasharray="4 4"
+                      fill="none"
+                    />
+                    <path
+                      d="M150 65 V 175"
+                      stroke="#93C5FD"
+                      strokeWidth="1"
+                      strokeDasharray="2 2"
+                    />
                   </svg>
                 )}
                 <div className="absolute bottom-2 left-2 text-[10px] font-mono text-slate-400 bg-slate-950/80 px-2 py-0.5 rounded">
@@ -231,12 +268,16 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
 
               <div className="p-3 bg-emerald-50/60 rounded-xl border border-emerald-100 text-slate-700 space-y-2">
                 <p className="font-bold text-navy-950">1. Cholecalciferol (Vitamin D3) 60,000 IU</p>
-                <p className="text-[11px] text-slate-600">Sig: 1 capsule orally once weekly on Sundays after breakfast (8 weeks duration).</p>
+                <p className="text-[11px] text-slate-600">
+                  Sig: 1 capsule orally once weekly on Sundays after breakfast (8 weeks duration).
+                </p>
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-slate-700 space-y-2">
                 <p className="font-bold text-navy-950">2. Cetirizine Hydrochloride 10 mg</p>
-                <p className="text-[11px] text-slate-600">Sig: 1 tablet orally once daily at bedtime as needed for allergic rhinitis.</p>
+                <p className="text-[11px] text-slate-600">
+                  Sig: 1 tablet orally once daily at bedtime as needed for allergic rhinitis.
+                </p>
               </div>
 
               <div className="text-[10px] text-slate-400 pt-2 border-t flex justify-between">
@@ -251,12 +292,15 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
             <div className="w-[480px] max-w-full bg-white text-slate-800 rounded-2xl p-6 shadow-2xl border border-slate-200 text-xs space-y-3">
               <div className="border-b pb-2">
                 <h4 className="font-bold text-navy-950 text-xs">{document.facility}</h4>
-                <p className="text-[10px] text-slate-400">Clinical Evaluation Summary • {document.documentDateDisplay}</p>
+                <p className="text-[10px] text-slate-400">
+                  Clinical Evaluation Summary • {document.documentDateDisplay}
+                </p>
               </div>
               <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
                 <p className="font-semibold text-navy-950">Subjective & Objective Notes:</p>
                 <p className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  {document.notes || 'Patient presented for routine scheduled evaluation. Clinical vitals stable. Comprehensive physical examination unremarkable. Recommended routine maintenance protocol.'}
+                  {document.notes ||
+                    'Patient presented for routine scheduled evaluation. Clinical vitals stable. Comprehensive physical examination unremarkable. Recommended routine maintenance protocol.'}
                 </p>
               </div>
               <div className="pt-2 text-[10px] text-slate-400 flex justify-between border-t">
@@ -273,9 +317,7 @@ export const DocumentPreview: React.FC<DocumentPreviewProps> = ({
                 <AlertCircle className="w-6 h-6" />
               </div>
               <h4 className="text-sm font-bold text-slate-200">{t.previewUnavailable}</h4>
-              <p className="text-xs text-slate-400 leading-relaxed">
-                {t.previewUnavailableDesc}
-              </p>
+              <p className="text-xs text-slate-400 leading-relaxed">{t.previewUnavailableDesc}</p>
             </div>
           )}
         </div>

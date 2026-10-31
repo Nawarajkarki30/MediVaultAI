@@ -36,9 +36,7 @@ export const VaultHeader: React.FC<VaultHeaderProps> = ({
             {t.vaultTitle}
           </h1>
 
-          <p className="text-sm sm:text-base text-brand-muted leading-relaxed">
-            {t.vaultSubtitle}
-          </p>
+          <p className="text-sm sm:text-base text-brand-muted leading-relaxed">{t.vaultSubtitle}</p>
         </div>
 
         {/* Action Button */}
@@ -62,9 +60,7 @@ export const VaultHeader: React.FC<VaultHeaderProps> = ({
               <Info className="w-4 h-4" />
             </div>
             <div>
-              <p className="font-semibold text-navy-950">
-                {t.vaultDemoBanner}
-              </p>
+              <p className="font-semibold text-navy-950">{t.vaultDemoBanner}</p>
             </div>
           </div>
 

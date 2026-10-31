@@ -39,10 +39,7 @@ export function sanitizeFileName(originalName: string): string {
  * Validates file signature (magic bytes) against unencrypted buffer and verifies
  * that the filename extension strictly matches the detected binary format.
  */
-export function validateFileSignature(
-  buffer: Buffer,
-  originalFileName: string
-): ValidatedFileMeta {
+export function validateFileSignature(buffer: Buffer, originalFileName: string): ValidatedFileMeta {
   if (!buffer || buffer.length < 8) {
     throw new AppError(
       'Invalid file payload: Insufficient bytes to determine file signature',
@@ -75,10 +72,7 @@ export function validateFileSignature(
   }
 
   // Cross-verify filename extension matches magic bytes
-  if (
-    detectedMime === 'application/pdf' &&
-    rawExt !== '.pdf'
-  ) {
+  if (detectedMime === 'application/pdf' && rawExt !== '.pdf') {
     throw new AppError(
       'File extension does not match binary content (expected .pdf)',
       400,
@@ -86,10 +80,7 @@ export function validateFileSignature(
     );
   }
 
-  if (
-    detectedMime === 'image/png' &&
-    rawExt !== '.png'
-  ) {
+  if (detectedMime === 'image/png' && rawExt !== '.png') {
     throw new AppError(
       'File extension does not match binary content (expected .png)',
       400,
@@ -97,11 +88,7 @@ export function validateFileSignature(
     );
   }
 
-  if (
-    detectedMime === 'image/jpeg' &&
-    rawExt !== '.jpg' &&
-    rawExt !== '.jpeg'
-  ) {
+  if (detectedMime === 'image/jpeg' && rawExt !== '.jpg' && rawExt !== '.jpeg') {
     throw new AppError(
       'File extension does not match binary content (expected .jpg or .jpeg)',
       400,

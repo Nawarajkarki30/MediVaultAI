@@ -2,7 +2,13 @@
 // MediVault AI — Medical Vault Schema Verification Script
 
 import 'dotenv/config';
-import { prisma, Role, DocumentCategory, DocumentStatus, DocumentAuditEventType } from '@medivault/database';
+import {
+  prisma,
+  Role,
+  DocumentCategory,
+  DocumentStatus,
+  DocumentAuditEventType,
+} from '@medivault/database';
 
 async function main() {
   console.log('--- MediVault AI Medical Vault Schema Verification ---');
@@ -12,7 +18,9 @@ async function main() {
     const docCount = await prisma.medicalDocument.count();
     const metaCount = await prisma.documentStorageMetadata.count();
     const auditCount = await prisma.documentAuditEvent.count();
-    console.log(`✔ Models accessible: medical_documents (${docCount}), document_storage_metadata (${metaCount}), document_audit_events (${auditCount})`);
+    console.log(
+      `✔ Models accessible: medical_documents (${docCount}), document_storage_metadata (${metaCount}), document_audit_events (${auditCount})`
+    );
 
     // 2. Test transactional creation of synthetic user + medical document + storage metadata + audit event
     const testEmail = `synthetic.test.${Date.now()}@example.com`;
@@ -65,14 +73,20 @@ async function main() {
       },
     });
 
-    console.log(`✔ Created document with relations: Doc ID: ${createdDoc.id}, StorageKey: ${createdDoc.storageMetadata?.storageKey}`);
+    console.log(
+      `✔ Created document with relations: Doc ID: ${createdDoc.id}, StorageKey: ${createdDoc.storageMetadata?.storageKey}`
+    );
     console.log(`✔ Audit event logged: ${createdDoc.auditEvents[0]?.eventType}`);
 
     // 4. Verify cascade delete behavior (deleting user should delete document and metadata, set null on audit)
     await prisma.user.delete({ where: { id: createdUser.id } });
     const remainingDoc = await prisma.medicalDocument.findUnique({ where: { id: createdDoc.id } });
-    const remainingMeta = await prisma.documentStorageMetadata.findUnique({ where: { storageKey } });
-    console.log(`✔ Cascade delete confirmed: Document is ${remainingDoc ? 'PRESENT' : 'NULL'}, Metadata is ${remainingMeta ? 'PRESENT' : 'NULL'}`);
+    const remainingMeta = await prisma.documentStorageMetadata.findUnique({
+      where: { storageKey },
+    });
+    console.log(
+      `✔ Cascade delete confirmed: Document is ${remainingDoc ? 'PRESENT' : 'NULL'}, Metadata is ${remainingMeta ? 'PRESENT' : 'NULL'}`
+    );
 
     // Clean up orphan test audit event
     await prisma.documentAuditEvent.deleteMany({ where: { userId: createdUser.id } });

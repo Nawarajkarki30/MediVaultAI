@@ -2,7 +2,7 @@
 // MediVault AI — Secure Medical Vault Service
 
 import crypto from 'crypto';
-import { DocumentCategory, DocumentAuditEventType } from '@medivault/database';
+import { DocumentCategory, DocumentStatus, DocumentAuditEventType } from '@medivault/database';
 import { vaultRepository, VaultRepository } from '../repositories/vault.repository';
 import { vaultStorageService, IStorageService } from './storage.service';
 import { clamAvService, IClamAvService } from './clamav.service';
@@ -27,6 +27,7 @@ export interface UploadDocumentParams {
   notes?: string;
   ipAddress?: string;
   userAgent?: string;
+  signal?: AbortSignal;
 }
 
 export class VaultService {
@@ -39,28 +40,48 @@ export class VaultService {
   /**
    * Secure upload pipeline:
    * 1. Magic byte & extension validation
-   * 2. Local ClamAV TCP INSTREAM scan (fail-closed)
+   * 2. Local ClamAV TCP INSTREAM scan (fail-closed, cooperative cancellation)
    * 3. Ephemeral DEK generation & AES-256-GCM envelope encryption
    * 4. Atomic encrypted file staging & sharding
    * 5. Database transaction with pessimistic quota lock
    * 6. Memory scrubbing of plaintext buffers
-   * 7. Compensating rollback on failure
+   * 7. Compensating rollback on abort or failure
    */
   async uploadDocument(params: UploadDocumentParams): Promise<DocumentDTO> {
-    const { ownerId, fileBuffer, originalFileName, title, category, documentDate, notes, ipAddress, userAgent } = params;
+    const {
+      ownerId,
+      fileBuffer,
+      originalFileName,
+      title,
+      category,
+      documentDate,
+      notes,
+      ipAddress,
+      userAgent,
+      signal,
+    } = params;
+
+    // Check cancellation before beginning
+    if (signal?.aborted) {
+      fileBuffer.fill(0);
+      throw new AppError('Upload aborted by client or request timeout', 408, 'REQUEST_ABORTED');
+    }
 
     // 1. Validate file signature & extension
     const validated = validateFileSignature(fileBuffer, originalFileName);
 
-    // 2. Scan in-memory buffer with ClamAV over TCP
-    const scanResult = await this.clamAv.scanBuffer(fileBuffer);
+    // 2. Scan in-memory buffer with ClamAV over TCP (propagating signal)
+    const scanResult = await this.clamAv.scanBuffer(fileBuffer, signal);
     if (!scanResult.isClean) {
       await this.repository.logAuditEvent({
         userId: ownerId,
         eventType: DocumentAuditEventType.MALWARE_DETECTED,
         ipAddress,
         userAgent,
-        details: JSON.stringify({ virusName: scanResult.virusName, fileName: validated.sanitizedFileName }),
+        details: JSON.stringify({
+          virusName: scanResult.virusName,
+          fileName: validated.sanitizedFileName,
+        }),
       });
 
       // Scrub memory buffer immediately
@@ -73,6 +94,12 @@ export class VaultService {
       );
     }
 
+    // Check cancellation after malware screening
+    if (signal?.aborted) {
+      fileBuffer.fill(0);
+      throw new AppError('Upload aborted by client or request timeout', 408, 'REQUEST_ABORTED');
+    }
+
     // 3. Cryptographic envelope preparation
     const docId = crypto.randomUUID();
     const storageKey = crypto.randomUUID();
@@ -82,11 +109,18 @@ export class VaultService {
     const releaseSemaphore = await vaultCryptoSemaphore.acquire();
     let encResult;
     try {
+      if (signal?.aborted) {
+        throw new AppError('Upload aborted by client or request timeout', 408, 'REQUEST_ABORTED');
+      }
       encResult = encryptDocument(fileBuffer, docId, ownerId, masterKek, 1);
     } finally {
       releaseSemaphore();
       // Best-effort plaintext memory scrubbing
       fileBuffer.fill(0);
+    }
+
+    if (signal?.aborted) {
+      throw new AppError('Upload aborted by client or request timeout', 408, 'REQUEST_ABORTED');
     }
 
     // 4. Atomic physical file write
@@ -98,6 +132,16 @@ export class VaultService {
       throw storageErr;
     }
 
+    // Check cancellation before committing to DB
+    if (signal?.aborted) {
+      logger.warn(
+        'Upload aborted before database commit. Executing compensating rollback to purge blob',
+        { storageKey }
+      );
+      await this.storage.purgeBlob(storageKey);
+      throw new AppError('Upload aborted by client or request timeout', 408, 'REQUEST_ABORTED');
+    }
+
     // 5. Database record creation under pessimistic quota lock
     try {
       const created = await this.repository.createDocumentWithStorage({
@@ -107,7 +151,7 @@ export class VaultService {
         originalFileName: validated.sanitizedFileName,
         mimeType: validated.mimeType,
         category: category || DocumentCategory.OTHER,
-        fileSize: fileBuffer.length,
+        fileSize: encResult.sha256Checksum ? encResult.ciphertext.length : fileBuffer.length,
         documentDate,
         notes,
         storage: {
@@ -125,7 +169,10 @@ export class VaultService {
         audit: {
           ipAddress,
           userAgent,
-          details: JSON.stringify({ action: 'DOCUMENT_UPLOADED', size: fileBuffer.length }),
+          details: JSON.stringify({
+            action: 'DOCUMENT_UPLOADED',
+            size: storedFile.ciphertextBytes,
+          }),
         },
       });
 
@@ -247,10 +294,7 @@ export class VaultService {
       this.repository.getStorageStats(ownerId),
     ]);
 
-    const usedPercentage = Math.min(
-      100,
-      Math.round((stats.usedBytes / stats.quotaBytes) * 100)
-    );
+    const usedPercentage = Math.min(100, Math.round((stats.usedBytes / stats.quotaBytes) * 100));
 
     return {
       documents: documents.map((d) => this.toDTO(d)),
@@ -328,7 +372,7 @@ export class VaultService {
     mimeType: string;
     category: DocumentCategory;
     fileSize: number;
-    status: any;
+    status: DocumentStatus;
     notes: string | null;
     documentDate: Date | null;
     createdAt: Date;

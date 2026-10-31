@@ -24,6 +24,7 @@
     "db:test:live": "tsx scripts/test-live-auth.ts",
     "vault:reconcile": "tsx scripts/vault-reconcile.ts",
     "vault:backup:test": "tsx scripts/vault-backup-restore.ts",
+    "vault:disaster-recovery:test": "tsx scripts/vault-disaster-recovery-test.ts",
     "docker:db:up": "powershell scripts/start-postgres.ps1",
     "docker:db:down": "docker compose down"
   },

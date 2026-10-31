@@ -245,6 +245,19 @@ npm run test
   npm run test --workspace=@medivault/backend
   ```
 
+### Disaster Recovery & Vault Integrity Verification
+
+```bash
+# Run full disaster recovery verification (PostgreSQL dump + restore to disposable DB + decryption)
+npm run vault:disaster-recovery:test
+
+# Run storage blob & database metadata reconciliation check
+npm run vault:reconcile
+
+# Run manifest-driven backup & restoration test
+npm run vault:backup:test
+```
+
 ### Linting & Formatting
 
 ```bash
@@ -260,25 +273,31 @@ npm run format
 
 ---
 
-## 9. Current Features (Phase 1)
+## 9. Current Features (Phases 1, 2A, 2B, 2C.1 - 2C.4 Completed)
 
-- 🎨 **Approved Homepage Wireframe Implementation:**
+- 🎨 **Approved Homepage & Dashboard Visual Identity:**
   - Premium healthcare SaaS visual identity with exact design tokens (`#2675F5`, `#0B1B49`, `#F8FBFF`, `#526482`).
   - Responsive header with mobile drawer, accessible ESC/focus management, and smooth navigation.
-  - Hero section with approved headline, eyebrow pill, and primary/secondary CTAs.
-  - Interactive **Dashboard Preview** with synthetic metrics, recent reports, and bilingual (English/Nepali) explanation modal.
-  - **Section C: 4 Key Benefits** cards with clean Lucide icons.
-  - **Section D: 3-step How It Works** sequential cards with desktop connector arrows.
-  - Deep-dive sections for **Family Sharing** and **Caregiver Network**.
-  - Informational medical disclaimer prominently displayed.
-  - Labeled nonfunctional prototype pages for `/auth/login` and `/auth/register`.
-- ⚡ **Express Backend Foundation:**
-  - Hardened `/api/health` endpoint returning system uptime and version without exposing secrets.
-  - Centralized error-handling middleware catching Zod errors, operational errors, and HTTP exceptions.
-  - Strict Helmet CSP and CORS restricted to configured development origins.
-- 🗄️ **Database Baseline:**
-  - PostgreSQL Prisma schema with `SystemHealth` model.
-  - Full Phase 2/3 entity relationship architecture documented in `docs/DATABASE.md`.
+  - Interactive **Dashboard Preview** with synthetic metrics, recent reports, and bilingual (English/Nepali) preview modal.
+  - Full **Patient Dashboard** (`/patient/dashboard`) with dynamic time-based greeting, live stats cards, report filtering, and family quick actions.
+  - Full **Personal Health Vault** (`/patient/vault` & `/patient/vault/:documentId`) with grid/list views, categories, search, attachment preview, and metadata editing.
+- 🔐 **Hardened Patient Authentication (Phase 2A & 2C.4):**
+  - Argon2id password hashing (64MB memory, 3 iterations, 4 threads).
+  - Secure HttpOnly session cookies with SHA-256 hash-at-rest token storage.
+  - Email verification and password recovery token lifecycle.
+  - **Cryptographically session-bound anti-CSRF** (`HMAC-SHA256` token signature, timing-safe equality, token rotation on login, cookie clear on logout, and `/logout` protection).
+- 🛡️ **Secure Medical Vault & Storage Architecture (Phase 2C.3 & 2C.4):**
+  - **AES-256-GCM Envelope Encryption:** Ephemeral per-document 256-bit DEK wrapped by 256-bit Master KEK.
+  - **Cryptographic AAD Binding:** Binds canonical JSON `{ documentId, ownerId, storageVersion, keyVersion }` into the GCM cipher.
+  - **ClamAV In-Memory Malware Screening:** Streams buffer over TCP `zINSTREAM` with fail-closed behavior and cooperative `AbortSignal` cancellation.
+  - **Dedicated Upload Rate Limiting:** Dual tracking (10 uploads/15 min per user, 30/15 min per IP fallback) with `Retry-After` header and zero patient identity leak.
+  - **Strict Multipart Parsing:** Enforces Busboy limits (10MB file, 1 file, 10 fields, 50 chars fieldName, 2 KB fieldSize, 15 parts) and unexpected field whitelisting.
+  - **Anti-Spoofing Client IP Resolution:** Ignores spoofed `X-Forwarded-For` when `TRUST_PROXY=false`, falling back strictly to socket remote address.
+  - **Full Automated Disaster Recovery Test:** `npm run vault:disaster-recovery:test` dumps PostgreSQL, restores into disposable database `medivault_restore_test`, decrypts restored blobs, and verifies byte-for-byte matching without touching `medivault_dev`.
+- 🗄️ **Database & Infrastructure:**
+  - Local Docker PostgreSQL 16 Alpine running with persistent named volume.
+  - ClamAV antivirus daemon container with health checks.
+  - Prisma 6.19 migrations for Users, Sessions, Tokens, MedicalDocuments, StorageMetadata, and AuditEvents.
 
 ---
 

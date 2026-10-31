@@ -9,7 +9,7 @@ import {
   forgotPasswordSchema,
   resetPasswordSchema,
 } from '../types/auth';
-import { issueCsrfToken } from '../middleware/csrf';
+import { issueCsrfToken, clearCsrfToken } from '../middleware/csrf';
 
 export const SESSION_COOKIE_NAME = 'medivault_session';
 
@@ -57,8 +57,12 @@ export class AuthController {
         expires: expiresAt,
       });
 
-      // Ensure fresh CSRF token is issued
-      const csrfToken = issueCsrfToken(req, res);
+      // Update request context to bind fresh CSRF token to new session
+      req.cookies = { ...req.cookies, [SESSION_COOKIE_NAME]: sessionToken };
+      req.sessionToken = sessionToken;
+
+      // Ensure fresh session-bound CSRF token is issued (rotating any previous guest token)
+      const csrfToken = issueCsrfToken(req, res, true);
 
       res.status(200).json({
         success: true,
@@ -88,6 +92,9 @@ export class AuthController {
         sameSite: 'lax',
         path: '/',
       });
+
+      // Clear session-bound CSRF cookie
+      clearCsrfToken(res);
 
       res.status(200).json({
         success: true,

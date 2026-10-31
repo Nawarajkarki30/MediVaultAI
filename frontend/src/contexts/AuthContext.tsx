@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
 import { SafeUser } from '../types/auth';
 import { authApi } from '../services/auth.api';
 
@@ -23,11 +23,20 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<SafeUser | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Restore session from HttpOnly cookie on page load / reload
   const refreshUser = useCallback(async (): Promise<SafeUser | null> => {
     try {
       const response = await authApi.getMe();
+      if (!isMountedRef.current || typeof window === 'undefined') return null;
       if (response?.data?.user) {
         setUser(response.data.user);
         return response.data.user;
@@ -35,10 +44,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       return null;
     } catch {
-      setUser(null);
+      if (isMountedRef.current && typeof window !== 'undefined') {
+        setUser(null);
+      }
       return null;
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current && typeof window !== 'undefined') {
+        setIsLoading(false);
+      }
     }
   }, []);
 

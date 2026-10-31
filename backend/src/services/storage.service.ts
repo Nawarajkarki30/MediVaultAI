@@ -120,11 +120,7 @@ export class LocalVaultStorageService implements IStorageService {
       if (err.code === 'ENOENT') {
         throw new AppError('Encrypted storage blob not found on disk', 404, 'STORAGE_NOT_FOUND');
       }
-      throw new AppError(
-        `Failed to read storage blob: ${err.message}`,
-        500,
-        'STORAGE_READ_ERROR'
-      );
+      throw new AppError(`Failed to read storage blob: ${err.message}`, 500, 'STORAGE_READ_ERROR');
     }
   }
 
@@ -201,7 +197,9 @@ export class LocalVaultStorageService implements IStorageService {
   /**
    * Reconciles physical files on disk against a set of expected storage keys from database.
    */
-  async reconcileStorage(activeKeys: Set<string>): Promise<{ orphaned: string[]; missing: string[] }> {
+  async reconcileStorage(
+    activeKeys: Set<string>
+  ): Promise<{ orphaned: string[]; missing: string[] }> {
     const activeDir = path.join(this.storageRoot, 'active');
     const physicalKeys: string[] = [];
 

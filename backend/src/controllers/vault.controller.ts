@@ -8,6 +8,7 @@ import { DocumentCategory } from '@medivault/database';
 import { vaultService } from '../services/vault.service';
 import { env } from '../config/env';
 import { AppError } from '../utils/appError';
+import { getClientIp } from '../middleware/rateLimiter';
 
 const updateDocumentSchema = z.object({
   title: z.string().min(1).max(150).optional(),
@@ -21,6 +22,8 @@ const updateDocumentSchema = z.object({
     .nullable(),
 });
 
+const ALLOWED_FORM_FIELDS = new Set(['title', 'category', 'notes', 'documentDate']);
+
 function getParamId(req: Request): string {
   const { id } = req.params;
   return Array.isArray(id) ? id[0] : id;
@@ -29,18 +32,29 @@ function getParamId(req: Request): string {
 export class VaultController {
   /**
    * POST /api/vault/upload
-   * Streams multipart upload into memory, validates magic bytes, screens with ClamAV,
-   * encrypts via envelope AES-256-GCM, and saves document record under pessimistic quota lock.
+   * Streams multipart upload into memory with strict resource limits, validates magic bytes,
+   * screens with ClamAV, encrypts via envelope AES-256-GCM, and saves document record under
+   * pessimistic quota lock. Supports coordinated cancellation and client disconnect handling.
    */
   async upload(req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!req.user) {
       return next(new AppError('Authentication required', 401));
     }
 
+    if (req.abortSignal?.aborted) {
+      return next(
+        new AppError('Upload cancelled: request already aborted', 408, 'REQUEST_ABORTED')
+      );
+    }
+
     const contentType = req.headers['content-type'] || '';
     if (!contentType.includes('multipart/form-data')) {
       return next(
-        new AppError('Invalid content-type: multipart/form-data required', 400, 'INVALID_CONTENT_TYPE')
+        new AppError(
+          'Invalid content-type: multipart/form-data required',
+          400,
+          'INVALID_CONTENT_TYPE'
+        )
       );
     }
 
@@ -50,25 +64,60 @@ export class VaultController {
     let totalBytes = 0;
     let fileLimitExceeded = false;
     let fileFound = false;
+    let multipleFilesDetected = false;
+    let fieldViolationError: string | null = null;
+    let isAborted = false;
+
+    // Listen for coordinated cancellation or client disconnect
+    const onAbort = () => {
+      isAborted = true;
+      chunks.length = 0; // Free chunks immediately
+    };
+
+    if (req.abortSignal) {
+      req.abortSignal.addEventListener('abort', onAbort, { once: true });
+    }
 
     try {
       const bb = Busboy({
         headers: req.headers,
         limits: {
-          fileSize: env.MAX_FILE_SIZE_BYTES,
+          fileSize: env.MAX_FILE_SIZE_BYTES, // 10 MB
           files: 1,
+          fields: 10,
+          fieldNameSize: 50,
+          fieldSize: 2048, // 2 KB max per text field
+          parts: 15,
         },
       });
 
-      bb.on('field', (name, val) => {
+      bb.on('field', (name, val, info) => {
+        if (!ALLOWED_FORM_FIELDS.has(name)) {
+          fieldViolationError = `Unexpected form field: '${name}'. Permitted fields: ${Array.from(ALLOWED_FORM_FIELDS).join(', ')}`;
+          return;
+        }
+        if (info.nameTruncated || info.valueTruncated) {
+          fieldViolationError = `Form field '${name}' exceeds maximum allowed size`;
+          return;
+        }
         fields[name] = val;
       });
 
       bb.on('file', (_name, fileStream, info) => {
+        if (fileFound) {
+          multipleFilesDetected = true;
+          fileStream.resume(); // Drain extraneous file
+          return;
+        }
+
         fileFound = true;
         originalFileName = info.filename || 'unnamed_document.bin';
 
         fileStream.on('data', (data: Buffer) => {
+          if (isAborted) {
+            fileStream.resume();
+            return;
+          }
           totalBytes += data.length;
           if (totalBytes > env.MAX_FILE_SIZE_BYTES) {
             fileLimitExceeded = true;
@@ -83,12 +132,66 @@ export class VaultController {
         });
       });
 
+      bb.on('fieldsLimit', () => {
+        fieldViolationError = 'Exceeded maximum permitted form fields (10)';
+      });
+
+      bb.on('partsLimit', () => {
+        fieldViolationError = 'Exceeded maximum permitted multipart parts (15)';
+      });
+
+      bb.on('filesLimit', () => {
+        multipleFilesDetected = true;
+      });
+
       bb.on('error', (err) => {
-        next(new AppError(`Multipart parsing error: ${(err as Error).message}`, 400));
+        if (res.headersSent) return;
+        next(
+          new AppError(
+            `Multipart parsing error: ${(err as Error).message}`,
+            400,
+            'MALFORMED_MULTIPART'
+          )
+        );
       });
 
       bb.on('close', async () => {
+        if (req.abortSignal) {
+          req.abortSignal.removeEventListener('abort', onAbort);
+        }
+
+        if (isAborted || req.abortSignal?.aborted) {
+          chunks.length = 0;
+          if (!res.headersSent) {
+            return next(
+              new AppError(
+                'Upload cancelled: connection closed or timed out',
+                408,
+                'REQUEST_ABORTED'
+              )
+            );
+          }
+          return;
+        }
+
+        if (multipleFilesDetected) {
+          chunks.length = 0;
+          return next(
+            new AppError(
+              'Only one medical document may be uploaded per request',
+              400,
+              'TOO_MANY_FILES'
+            )
+          );
+        }
+
+        if (fieldViolationError) {
+          chunks.length = 0;
+          return next(new AppError(fieldViolationError, 400, 'INVALID_MULTIPART_FIELDS'));
+        }
+
         if (fileLimitExceeded) {
+          chunks.length = 0;
           return next(
             new AppError(
               `File exceeds maximum permitted size of ${Math.round(env.MAX_FILE_SIZE_BYTES / (1024 * 1024))} MB`,
@@ -103,10 +206,14 @@ export class VaultController {
         }
 
         const fileBuffer = Buffer.concat(chunks);
+        chunks.length = 0; // Release memory reference
 
         try {
           let parsedCategory: DocumentCategory | undefined = undefined;
-          if (fields.category && Object.values(DocumentCategory).includes(fields.category as DocumentCategory)) {
+          if (
+            fields.category &&
+            Object.values(DocumentCategory).includes(fields.category as DocumentCategory)
+          ) {
             parsedCategory = fields.category as DocumentCategory;
           }
 
@@ -116,6 +223,8 @@ export class VaultController {
             if (isNaN(parsedDate.getTime())) parsedDate = undefined;
           }
 
+          const clientIp = getClientIp(req);
+
           const document = await vaultService.uploadDocument({
             ownerId: req.user!.id,
             fileBuffer,
@@ -124,22 +233,29 @@ export class VaultController {
             category: parsedCategory,
             documentDate: parsedDate,
             notes: fields.notes,
-            ipAddress: req.ip,
+            ipAddress: clientIp,
             userAgent: req.headers['user-agent'],
+            signal: req.abortSignal,
           });
+
+          if (res.headersSent) return;
 
           res.status(201).json({
             success: true,
             document,
           });
         } catch (uploadErr) {
-          next(uploadErr);
+          if (!res.headersSent) {
+            next(uploadErr);
+          }
         }
       });
 
       req.pipe(bb);
     } catch (err) {
-      next(err);
+      if (!res.headersSent) {
+        next(err);
+      }
     }
   }
 
@@ -155,7 +271,10 @@ export class VaultController {
 
       const categoryParam = req.query.category as string | undefined;
       let category: DocumentCategory | undefined = undefined;
-      if (categoryParam && Object.values(DocumentCategory).includes(categoryParam as DocumentCategory)) {
+      if (
+        categoryParam &&
+        Object.values(DocumentCategory).includes(categoryParam as DocumentCategory)
+      ) {
         category = categoryParam as DocumentCategory;
       }
 
@@ -180,7 +299,7 @@ export class VaultController {
       }
 
       const document = await vaultService.getDocument(getParamId(req), req.user.id, {
-        ipAddress: req.ip,
+        ipAddress: getClientIp(req),
         userAgent: req.headers['user-agent'],
       });
 
@@ -207,7 +326,7 @@ export class VaultController {
         getParamId(req),
         req.user.id,
         {
-          ipAddress: req.ip,
+          ipAddress: getClientIp(req),
           userAgent: req.headers['user-agent'],
         }
       );
@@ -258,7 +377,7 @@ export class VaultController {
       }
 
       const document = await vaultService.updateDocument(getParamId(req), req.user.id, updates, {
-        ipAddress: req.ip,
+        ipAddress: getClientIp(req),
         userAgent: req.headers['user-agent'],
       });
 
@@ -282,7 +401,7 @@ export class VaultController {
       }
 
       await vaultService.softDeleteDocument(getParamId(req), req.user.id, {
-        ipAddress: req.ip,
+        ipAddress: getClientIp(req),
         userAgent: req.headers['user-agent'],
       });
 

@@ -75,7 +75,10 @@ export const EditTitleModal: React.FC<EditTitleModalProps> = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="doc-title-input" className="block text-xs font-semibold text-slate-700 mb-1">
+            <label
+              htmlFor="doc-title-input"
+              className="block text-xs font-semibold text-slate-700 mb-1"
+            >
               Document Name
             </label>
             <input

@@ -26,6 +26,36 @@ const envSchema = z.object({
     .string()
     .min(32, 'SESSION_SECRET must be at least 32 characters long')
     .default('medivault_dev_secret_key_needs_to_be_at_least_32_characters_long!'),
+  CSRF_SECRET: z
+    .string()
+    .min(32, 'CSRF_SECRET must be at least 32 characters long')
+    .default('medivault_dev_csrf_secret_key_needs_to_be_at_least_32_characters!'),
+  TRUST_PROXY: z
+    .string()
+    .default('false')
+    .transform((val) => {
+      const lower = val.trim().toLowerCase();
+      if (lower === 'true' || lower === '1') return true;
+      if (lower === 'false' || lower === '0') return false;
+      const num = parseInt(lower, 10);
+      if (!isNaN(num)) return num;
+      return lower;
+    }),
+  UPLOAD_RATE_LIMIT_USER_MAX: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number())
+    .default('10'),
+  UPLOAD_RATE_LIMIT_IP_MAX: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number())
+    .default('30'),
+  UPLOAD_RATE_LIMIT_WINDOW_MS: z
+    .string()
+    .transform((val) => parseInt(val, 10))
+    .pipe(z.number())
+    .default('900000'), // 15 minutes
   SESSION_TTL_HOURS: z
     .string()
     .transform((val) => parseInt(val, 10))

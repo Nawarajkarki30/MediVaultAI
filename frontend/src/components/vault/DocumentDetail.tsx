@@ -30,11 +30,9 @@ export const DocumentDetail: React.FC<DocumentDetailProps> = ({
   const [notes, setNotes] = useState(document.notes || '');
   const [isSaved, setIsSaved] = useState(false);
 
-  const categoryLabel =
-    language === 'en' ? document.categoryLabelEn : document.categoryLabelNe;
+  const categoryLabel = language === 'en' ? document.categoryLabelEn : document.categoryLabelNe;
 
-  const summary =
-    language === 'en' ? document.summaryEn : document.summaryNe;
+  const summary = language === 'en' ? document.summaryEn : document.summaryNe;
 
   const handleSaveNotes = () => {
     onSaveNotes(notes);
@@ -84,9 +82,7 @@ export const DocumentDetail: React.FC<DocumentDetailProps> = ({
           {getStatusBadge()}
         </div>
 
-        <h2 className="text-xl font-extrabold text-navy-950">
-          {document.title}
-        </h2>
+        <h2 className="text-xl font-extrabold text-navy-950">{document.title}</h2>
         <p className="text-xs text-slate-400">{document.facility}</p>
       </div>
 
@@ -167,7 +163,10 @@ export const DocumentDetail: React.FC<DocumentDetailProps> = ({
 
       {/* Notes Section */}
       <div className="space-y-2">
-        <label htmlFor="vault-doc-notes" className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+        <label
+          htmlFor="vault-doc-notes"
+          className="text-xs font-bold text-slate-400 uppercase tracking-wider block"
+        >
           {t.notesHeader}
         </label>
         <textarea
@@ -205,7 +204,8 @@ export const DocumentDetail: React.FC<DocumentDetailProps> = ({
       <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 text-[11px] text-slate-500 flex items-start gap-2">
         <AlertCircle className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
         <span>
-          Fictional demonstration document. Real encrypted storage and OCR pipeline will activate in Phase 2C.2.
+          Fictional demonstration document. Real encrypted storage and OCR pipeline will activate in
+          Phase 2C.2.
         </span>
       </div>
     </div>

@@ -41,14 +41,18 @@ async function main() {
     console.log(`Orphaned files (on disk, unreferenced in DB): ${orphaned.length}`);
 
     if (missing.length > 0) {
-      console.error('\n✖ CRITICAL: The following storage keys are registered in DB but missing from disk:');
+      console.error(
+        '\n✖ CRITICAL: The following storage keys are registered in DB but missing from disk:'
+      );
       for (const key of missing) {
         console.error(`  - ${key}`);
       }
     }
 
     if (orphaned.length > 0) {
-      console.warn('\n⚠ WARNING: The following files exist on disk but are unreferenced by active database records:');
+      console.warn(
+        '\n⚠ WARNING: The following files exist on disk but are unreferenced by active database records:'
+      );
       for (const key of orphaned) {
         console.warn(`  - ${key}.enc`);
       }
@@ -57,7 +61,10 @@ async function main() {
       const shouldFix = process.argv.includes('--fix');
       if (shouldFix) {
         console.log('\n[Action] Moving orphaned files to storage_vault/orphans/ ...');
-        const orphansDir = path.resolve(process.env.VAULT_STORAGE_ROOT || './storage_vault', 'orphans');
+        const orphansDir = path.resolve(
+          process.env.VAULT_STORAGE_ROOT || './storage_vault',
+          'orphans'
+        );
         await fs.mkdir(orphansDir, { recursive: true });
 
         for (const orphanKey of orphaned) {
@@ -77,12 +84,16 @@ async function main() {
         }
         console.log('✔ All orphaned files safely quarantined.');
       } else {
-        console.log('\nTip: Run with --fix to automatically move orphaned files to storage_vault/orphans/');
+        console.log(
+          '\nTip: Run with --fix to automatically move orphaned files to storage_vault/orphans/'
+        );
       }
     }
 
     if (missing.length === 0 && orphaned.length === 0) {
-      console.log('\n✔ STORAGE CONSISTENCY CONFIRMED: 100% synchronization between database and disk.');
+      console.log(
+        '\n✔ STORAGE CONSISTENCY CONFIRMED: 100% synchronization between database and disk.'
+      );
       process.exit(0);
     } else if (missing.length === 0 && process.argv.includes('--fix')) {
       process.exit(0);

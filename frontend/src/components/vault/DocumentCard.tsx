@@ -64,7 +64,12 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
             <svg viewBox="0 0 48 48" className="w-10 h-10 opacity-80" aria-hidden="true">
               <path d="M24 6 C 14 16, 12 36, 16 42" stroke="#94A3B8" strokeWidth="2" fill="none" />
               <path d="M24 6 C 34 16, 36 36, 32 42" stroke="#94A3B8" strokeWidth="2" fill="none" />
-              <path d="M18 16 H30 M16 22 H32 M15 28 H33 M16 34 H32" stroke="#CBD5E1" strokeWidth="1.5" strokeDasharray="2 2" />
+              <path
+                d="M18 16 H30 M16 22 H32 M15 28 H33 M16 34 H32"
+                stroke="#CBD5E1"
+                strokeWidth="1.5"
+                strokeDasharray="2 2"
+              />
             </svg>
           </div>
         );
@@ -74,7 +79,12 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
         <div className="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center overflow-hidden shrink-0 shadow-2xs">
           <svg viewBox="0 0 48 48" className="w-10 h-10 opacity-80" aria-hidden="true">
             <circle cx="24" cy="24" r="16" stroke="#60A5FA" strokeWidth="1.5" fill="none" />
-            <path d="M16 24 Q 24 14 32 24 Q 24 34 16 24" stroke="#93C5FD" strokeWidth="1.5" fill="none" />
+            <path
+              d="M16 24 Q 24 14 32 24 Q 24 34 16 24"
+              stroke="#93C5FD"
+              strokeWidth="1.5"
+              fill="none"
+            />
           </svg>
         </div>
       );
@@ -153,9 +163,7 @@ export const DocumentCard: React.FC<DocumentCardProps> = ({
         <h3 className="text-sm font-bold text-navy-950 group-hover:text-brand-600 transition-colors line-clamp-1">
           {document.title}
         </h3>
-        <p className="text-xs text-slate-400 line-clamp-1">
-          {document.facility}
-        </p>
+        <p className="text-xs text-slate-400 line-clamp-1">{document.facility}</p>
       </div>
 
       {/* Bottom Row: Date & File Info */}

@@ -2,20 +2,23 @@
 
 **Document Version:** 2.0.0 (Post-Security Review Revisions)  
 **Specification:** AES-256-GCM Envelope Encryption & Cryptographic Lifecycle  
-**Classification:** Core Cryptographic Architecture  
+**Classification:** Core Cryptographic Architecture
 
 ---
 
 ## 1. Cryptographic Principles & Authenticated Decryption Redesign
 
 ### 1.1 The Vulnerability of Streaming AES-GCM Plaintext
-In Galois/Counter Mode (GCM), ciphertext blocks can technically be decrypted as they arrive in a stream. However, **the authentication tag is only evaluated at the very end of the stream** when `decipher.final()` is invoked. 
+
+In Galois/Counter Mode (GCM), ciphertext blocks can technically be decrypted as they arrive in a stream. However, **the authentication tag is only evaluated at the very end of the stream** when `decipher.final()` is invoked.
 
 Streaming unverified plaintext directly to an HTTP response means:
-- If ciphertext has been tampered with, truncated, or forged, the client receives tampered plaintext bytes *before* the server discovers the authenticity violation.
+
+- If ciphertext has been tampered with, truncated, or forged, the client receives tampered plaintext bytes _before_ the server discovers the authenticity violation.
 - This invalidates the primary security guarantee of Authenticated Encryption (AEAD) and opens side-channel attack vectors.
 
 ### 1.2 The Fix: Verify-Before-Release (In-Memory Authenticated Decryption)
+
 Because MediVault AI enforces an initial document size limit of **10 MB**, the backend implements a strict **Verify-Before-Release** architecture:
 
 ```mermaid
@@ -34,7 +37,7 @@ sequenceDiagram
     Engine-->>API: Plaintext DEK in Memory
     API->>Disk: 4. Read Entire Ciphertext Blob into Buffer
     Disk-->>API: Ciphertext Buffer (Max 10MB)
-    
+
     rect rgb(240, 248, 255)
         Note over API,Engine: IN-MEMORY AUTHENTICATED DECRYPTION
         API->>Engine: 5. createDecipheriv(AES-GCM, DEK, fileNonce)
@@ -43,7 +46,7 @@ sequenceDiagram
         API->>Engine: 8. decipher.update(ciphertextBuffer)
         API->>Engine: 9. decipher.final() -> AUTHENTICATION TAG VERIFIED
     end
-    
+
     alt Tag Verification Fails (Tampered / Corrupted)
         Engine-->>API: Error: Unsupported state or unable to authenticate data
         API->>API: Wipe Memory Buffers (buffer.fill(0))
@@ -57,7 +60,9 @@ sequenceDiagram
 ```
 
 ### 1.3 Decryption Concurrency & Memory Safety
+
 To prevent denial-of-service through memory exhaustion (e.g., 20 simultaneous 10 MB decryptions = 200 MB+ V8 heap spike):
+
 1. **Concurrency Limiter:** Decryption requests are throttled using an in-process semaphore:
    $$\text{MAX\_CONCURRENT\_DECRYPTIONS} = 5$$
 2. Excess requests wait in a prioritized queue with a 10-second timeout or return `429 Too Many Requests`.
@@ -67,15 +72,15 @@ To prevent denial-of-service through memory exhaustion (e.g., 20 simultaneous 10
 
 ## 2. Cryptographic Parameters & Key Specification
 
-| Parameter | Value / Algorithm | Cryptographic Rationale |
-|---|---|---|
-| **Cipher** | `aes-256-gcm` | AEAD cipher providing confidentiality and ciphertext integrity. |
-| **Data Encryption Key (DEK)** | 256 bits (32 bytes) | Generated uniquely per document via `crypto.randomBytes(32)`. |
-| **Master Key (KEK)** | 256 bits (32 bytes) | Stored exclusively in memory/env; wraps per-document DEKs. |
-| **File Nonce (IV)** | 96 bits (12 bytes) | Unique per document via `crypto.randomBytes(12)`. |
-| **DEK Nonce (IV)** | 96 bits (12 bytes) | Unique per DEK-wrapping operation via `crypto.randomBytes(12)`. |
-| **Authentication Tag** | 128 bits (16 bytes) | Standard GCM tag length providing $2^{128}$ forgery resistance. |
-| **Canonical AAD** | Binary canonical encoding | Binds `documentId`, `ownerId`, and `storageVersion`. |
+| Parameter                     | Value / Algorithm         | Cryptographic Rationale                                         |
+| ----------------------------- | ------------------------- | --------------------------------------------------------------- |
+| **Cipher**                    | `aes-256-gcm`             | AEAD cipher providing confidentiality and ciphertext integrity. |
+| **Data Encryption Key (DEK)** | 256 bits (32 bytes)       | Generated uniquely per document via `crypto.randomBytes(32)`.   |
+| **Master Key (KEK)**          | 256 bits (32 bytes)       | Stored exclusively in memory/env; wraps per-document DEKs.      |
+| **File Nonce (IV)**           | 96 bits (12 bytes)        | Unique per document via `crypto.randomBytes(12)`.               |
+| **DEK Nonce (IV)**            | 96 bits (12 bytes)        | Unique per DEK-wrapping operation via `crypto.randomBytes(12)`. |
+| **Authentication Tag**        | 128 bits (16 bytes)       | Standard GCM tag length providing $2^{128}$ forgery resistance. |
+| **Canonical AAD**             | Binary canonical encoding | Binds `documentId`, `ownerId`, and `storageVersion`.            |
 
 ---
 
@@ -84,6 +89,7 @@ To prevent denial-of-service through memory exhaustion (e.g., 20 simultaneous 10
 In AES-GCM, reusing a Nonce with the same key is catastrophic: it immediately compromises the authentication key (GHASH) and allows an attacker to compute the XOR difference of plaintexts.
 
 MediVault AI guarantees zero nonce reuse through **multi-layered defenses**:
+
 1. **Unique DEK per Document:** Because a fresh DEK is generated for every single upload, **a key is never used to encrypt more than one document**.
 2. **Cryptographic Nonce Generation:** A 96-bit (12-byte) nonce generated by a cryptographically secure pseudorandom number generator (CSPRNG via OpenSSL/Node `crypto.randomBytes(12)`).
 3. **Collision Probability:** Even with a single key, GCM allows up to $2^{32}$ encryptions before collision probability reaches $2^{-32}$. With a unique key per document, collision probability is effectively zero ($2^{-96}$).
@@ -124,8 +130,12 @@ If an encrypted blob is copied to another document or re-assigned to another own
 Under no circumstances is a raw, plaintext DEK stored in PostgreSQL or on the filesystem.
 
 ### 5.1 DEK Wrapping (Encryption of the DEK)
+
 ```typescript
-export function wrapDek(dek: Buffer, masterKek: Buffer): {
+export function wrapDek(
+  dek: Buffer,
+  masterKek: Buffer
+): {
   encryptedDek: string;
   dekNonce: string;
   dekAuthTag: string;
@@ -146,6 +156,7 @@ export function wrapDek(dek: Buffer, masterKek: Buffer): {
 ```
 
 ### 5.2 DEK Unwrapping (Decryption of the DEK)
+
 ```typescript
 export function unwrapDek(
   encryptedDekB64: string,
@@ -157,7 +168,9 @@ export function unwrapDek(
   const dekNonce = Buffer.from(dekNonceB64, 'base64');
   const dekAuthTag = Buffer.from(dekAuthTagB64, 'base64');
 
-  const decipher = crypto.createDecipheriv('aes-256-gcm', masterKek, dekNonce, { authTagLength: 16 });
+  const decipher = crypto.createDecipheriv('aes-256-gcm', masterKek, dekNonce, {
+    authTagLength: 16,
+  });
   decipher.setAAD(Buffer.from('MEDIVAULT:DEK_WRAP:V1', 'utf8'));
   decipher.setAuthTag(dekAuthTag);
 
@@ -170,6 +183,7 @@ export function unwrapDek(
 ## 6. Key Custody & Secrets Isolation
 
 ### 6.1 Storage Rules
+
 1. **Never in Database:** The Master KEK (`VAULT_MASTER_KEY`) is **never** written to PostgreSQL tables or migrations.
 2. **Never in File Volume:** The Master KEK is **never** written to `<VAULT_STORAGE_ROOT>`. An attacker gaining access to the storage volume finds only raw `.enc` ciphertext.
 3. **Never in Git:** `.gitignore` strictly excludes `.env`, `.env.local`, and all storage directories.
@@ -180,6 +194,7 @@ export function unwrapDek(
 ## 7. Master Key Rotation & Recovery Runbooks
 
 ### 7.1 Resumable Master Key Rotation (Zero File Blob Re-encryption)
+
 Rotating the Master KEK requires re-wrapping DEKs in PostgreSQL without touching the encrypted `.enc` file blobs:
 
 ```typescript
@@ -233,5 +248,6 @@ export async function rotateMasterKey(
 ```
 
 ### 7.2 Missing or Compromised Master Key Recovery
+
 - **Lost Master Key:** If `VAULT_MASTER_KEY` is lost without backup, the wrapped DEKs cannot be decrypted. The files are mathematically irrecoverable. **Countermeasure:** The Master Key must be backed up out-of-band in a sealed offline vault (e.g. encrypted KeePass / physical paper backup in a secure safe).
 - **Compromised Master Key:** If the Master Key is suspected of compromise, invoke `rotateMasterKey` immediately, update production environment variables, restart the service, and invalidate all prior database backups.

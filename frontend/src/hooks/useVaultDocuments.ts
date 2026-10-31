@@ -126,8 +126,11 @@ export const useVaultDocuments = (): UseVaultDocumentsReturn => {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [activeActionDocument, setActiveActionDocument] = useState<VaultDocument | null>(null);
-  const [activeEditTitleDocument, setActiveEditTitleDocument] = useState<VaultDocument | null>(null);
-  const [activeChangeCategoryDocument, setActiveChangeCategoryDocument] = useState<VaultDocument | null>(null);
+  const [activeEditTitleDocument, setActiveEditTitleDocument] = useState<VaultDocument | null>(
+    null
+  );
+  const [activeChangeCategoryDocument, setActiveChangeCategoryDocument] =
+    useState<VaultDocument | null>(null);
   const [activeDeleteDocument, setActiveDeleteDocument] = useState<VaultDocument | null>(null);
   const [isDemoBannerDismissed, setIsDemoBannerDismissed] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -318,12 +321,7 @@ export const useVaultDocuments = (): UseVaultDocumentsReturn => {
   );
 
   const updateDocumentCategory = useCallback(
-    async (
-      id: string,
-      newCategory: VaultCategory,
-      labelEn: string,
-      labelNe: string
-    ) => {
+    async (id: string, newCategory: VaultCategory, labelEn: string, labelNe: string) => {
       setDocuments((prev) =>
         prev.map((doc) =>
           doc.id === id
@@ -344,9 +342,7 @@ export const useVaultDocuments = (): UseVaultDocumentsReturn => {
 
   const updateDocumentNotes = useCallback(
     (id: string, notes: string) => {
-      setDocuments((prev) =>
-        prev.map((doc) => (doc.id === id ? { ...doc, notes } : doc))
-      );
+      setDocuments((prev) => prev.map((doc) => (doc.id === id ? { ...doc, notes } : doc)));
       showToast('Notes saved.');
     },
     [showToast]

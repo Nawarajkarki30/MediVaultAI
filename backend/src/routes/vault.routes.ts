@@ -7,6 +7,7 @@ import { vaultController } from '../controllers/vault.controller';
 import { authenticate, requireRole } from '../middleware/authenticate';
 import { csrfProtection } from '../middleware/csrf';
 import { requestTimeout } from '../middleware/requestTimeout';
+import { uploadRateLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -17,8 +18,10 @@ router.use(requestTimeout());
 router.use(authenticate);
 router.use(requireRole(Role.PATIENT));
 
-// Document upload (requires valid CSRF token on state change)
-router.post('/upload', csrfProtection, (req, res, next) => vaultController.upload(req, res, next));
+// Document upload (rate-limited, requires valid CSRF token on state change)
+router.post('/upload', uploadRateLimiter, csrfProtection, (req, res, next) =>
+  vaultController.upload(req, res, next)
+);
 
 // Document listing and single metadata retrieval
 router.get('/documents', (req, res, next) => vaultController.list(req, res, next));
@@ -28,7 +31,11 @@ router.get('/documents/:id', (req, res, next) => vaultController.getById(req, re
 router.get('/documents/:id/download', (req, res, next) => vaultController.download(req, res, next));
 
 // Metadata update and soft-deletion (require CSRF protection)
-router.patch('/documents/:id', csrfProtection, (req, res, next) => vaultController.update(req, res, next));
-router.delete('/documents/:id', csrfProtection, (req, res, next) => vaultController.delete(req, res, next));
+router.patch('/documents/:id', csrfProtection, (req, res, next) =>
+  vaultController.update(req, res, next)
+);
+router.delete('/documents/:id', csrfProtection, (req, res, next) =>
+  vaultController.delete(req, res, next)
+);
 
 export default router;

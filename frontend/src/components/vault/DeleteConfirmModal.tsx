@@ -64,9 +64,7 @@ export const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
         </div>
 
         <div className="space-y-2">
-          <p className="text-xs text-slate-600 leading-relaxed">
-            {t.deleteConfirmDesc}
-          </p>
+          <p className="text-xs text-slate-600 leading-relaxed">{t.deleteConfirmDesc}</p>
           <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-navy-950">
             {document.title} ({document.facility} • {document.documentDateDisplay})
           </div>

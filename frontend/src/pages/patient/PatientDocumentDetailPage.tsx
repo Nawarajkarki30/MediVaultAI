@@ -109,7 +109,9 @@ export const PatientDocumentDetailPage: React.FC = () => {
   }
 
   const handleDownload = async () => {
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      document.id
+    );
     if (isUuid) {
       try {
         await vaultApi.downloadDocument(
@@ -138,7 +140,9 @@ export const PatientDocumentDetailPage: React.FC = () => {
 
   const handleSaveNotes = async (newNotes: string) => {
     setDocument((prev) => (prev ? { ...prev, notes: newNotes } : null));
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      document.id
+    );
     if (isUuid) {
       try {
         await vaultApi.updateDocument(document.id, { notes: newNotes });
@@ -153,7 +157,9 @@ export const PatientDocumentDetailPage: React.FC = () => {
     setIsEditTitleOpen(false);
     showToast('Title updated successfully!');
 
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      document.id
+    );
     if (isUuid) {
       try {
         await vaultApi.updateDocument(document.id, { title: newTitle });
@@ -164,6 +170,7 @@ export const PatientDocumentDetailPage: React.FC = () => {
   };
 
   const handleChangeCategory = async (
+    _id: string,
     newCategory: VaultCategory,
     labelEn: string,
     labelNe: string
@@ -184,7 +191,9 @@ export const PatientDocumentDetailPage: React.FC = () => {
 
   const handleDelete = async () => {
     setIsDeleteOpen(false);
-    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(document.id);
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      document.id
+    );
     if (isUuid) {
       try {
         await vaultApi.deleteDocument(document.id);
@@ -303,10 +312,9 @@ export const PatientDocumentDetailPage: React.FC = () => {
 
         {/* Coming Soon Modal */}
         <ComingSoonModal
-          isOpen={!!comingSoonFeature}
+          featureName={comingSoonFeature}
           onClose={() => setComingSoonFeature(null)}
           language={language}
-          featureName={comingSoonFeature || ''}
         />
       </div>
     </DashboardLayout>

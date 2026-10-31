@@ -7,19 +7,11 @@ export type VaultCategory =
   | 'consultation-notes'
   | 'other';
 
-export type VaultProcessingStatus =
-  | 'uploaded'
-  | 'pending-review'
-  | 'reviewed'
-  | 'not-available';
+export type VaultProcessingStatus = 'uploaded' | 'pending-review' | 'reviewed' | 'not-available';
 
 export type VaultFileType = 'all' | 'PDF' | 'JPG' | 'PNG';
 
-export type VaultSortOption =
-  | 'newest'
-  | 'oldest'
-  | 'name-asc'
-  | 'recently-added';
+export type VaultSortOption = 'newest' | 'oldest' | 'name-asc' | 'recently-added';
 
 export type VaultViewMode = 'grid' | 'list';
 

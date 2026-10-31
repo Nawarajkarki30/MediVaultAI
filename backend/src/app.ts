@@ -11,6 +11,9 @@ import { apiRouter } from './routes';
 export const createApp = (): Application => {
   const app = express();
 
+  // Explicit trusted proxy configuration (anti-spoofing)
+  app.set('trust proxy', env.TRUST_PROXY);
+
   // Security headers with Helmet
   app.use(
     helmet({
