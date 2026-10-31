@@ -99,9 +99,34 @@ This document provides a clear breakdown of features currently implemented in **
 
 ---
 
-## 3. Planned Phase 2B: Document Processing & AI Engine
+## 3. Phase 2B: Complete Patient Dashboard Frontend (Current Phase)
 
-These features are planned and architected, but **not yet active** in Phase 2A:
+### ✅ Implemented Capabilities
+
+- **Desktop & Mobile Wireframe Fidelity (1440px & 375px):**
+  - Two-column desktop dashboard canvas and dedicated mobile bottom navigation layout.
+  - Sticky left sidebar with 7 navigation items, authenticated patient card, and real session logout.
+  - Top header with global search (`Ctrl K` shortcut), notification badge with interactive popover, bilingual language selector, and patient profile dropdown.
+  - Dynamic time-appropriate welcome hero ("Good morning / afternoon / evening") with authenticated patient's actual name and custom health illustration.
+  - Summary metric cards with trend badges and explicit demonstration indicators.
+  - Recent medical reports table on desktop and responsive card list on mobile with category filter pills (`All`, `Blood Tests`, `X-Ray`, `Prescription`, `Health Checkup`) and live search filtering.
+  - Dual-language AI explanation preview card with instant English/Nepali toggling and prominent medical disclaimer.
+  - Family sharing overview card with relative avatars, permission status badges, and invitation CTA.
+  - 5 Quick Action cards with accessible feedback.
+  - Mobile bottom navigation bar (5 tabs: `Home`, `Vault`, `AI`, `Family`, `More`) with slide-up sheet and safe-area padding.
+- **Bilingual Interface Support:**
+  - Full dictionary in `frontend/src/lib/translations.ts` providing seamless UI label translations between English and Nepali.
+- **Accessible Interactive Modals:**
+  - `DemoReportModal`: Interactive preview of synthetic clinical documents with simplified findings and medical disclaimer.
+  - `DemoUploadModal`: Drag-and-drop document upload simulation with clear Phase 2C notice.
+  - `InviteFamilyModal`: Family invitation dialog simulation.
+  - `ComingSoonModal`: Roadmap notification dialog for future capabilities.
+
+---
+
+## 4. Planned Phase 2C: Document Processing & AI Engine
+
+These features are planned and architected, but **not yet active** in Phase 2B:
 
 - **Medical Document Ingestion & Storage:**
   - Multi-file drag-and-drop uploader supporting PDF, JPEG, PNG, HEIC.

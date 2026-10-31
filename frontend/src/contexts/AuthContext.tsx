@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { SafeUser } from '../types/auth';
 import { authApi } from '../services/auth.api';
 
-interface AuthContextType {
+export interface AuthContextType {
   user: SafeUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -18,7 +18,7 @@ interface AuthContextType {
   refreshUser: () => Promise<SafeUser | null>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<SafeUser | null>(null);
