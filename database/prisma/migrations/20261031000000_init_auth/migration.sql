@@ -120,3 +120,4 @@ ALTER TABLE "verification_tokens" ADD CONSTRAINT "verification_tokens_userId_fke
 
 -- AddForeignKey
 ALTER TABLE "password_reset_tokens" ADD CONSTRAINT "password_reset_tokens_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+

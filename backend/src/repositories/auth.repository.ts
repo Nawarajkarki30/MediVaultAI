@@ -367,3 +367,4 @@ export function setAuthRepository(repo: IAuthRepository): void {
 export function getAuthRepository(): IAuthRepository {
   return activeRepository;
 }
+

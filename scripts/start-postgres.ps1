@@ -20,3 +20,4 @@ if ($LASTEXITCODE -eq 0) {
 } else {
     Write-Warning "Could not start PostgreSQL. Ensure Docker Desktop is open and the Linux Engine is active."
 }
+
