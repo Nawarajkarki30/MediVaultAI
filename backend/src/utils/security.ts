@@ -57,4 +57,3 @@ export function timingSafeEqual(a: string, b: string): boolean {
   }
   return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
 }
-

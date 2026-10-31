@@ -358,7 +358,8 @@ export class InMemoryAuthRepository implements IAuthRepository {
 }
 
 // Global active repository instance
-let activeRepository: IAuthRepository = new InMemoryAuthRepository();
+// Defaults to PrismaAuthRepository (PostgreSQL).
+let activeRepository: IAuthRepository = new PrismaAuthRepository();
 
 export function setAuthRepository(repo: IAuthRepository): void {
   activeRepository = repo;
@@ -367,4 +368,3 @@ export function setAuthRepository(repo: IAuthRepository): void {
 export function getAuthRepository(): IAuthRepository {
   return activeRepository;
 }
-

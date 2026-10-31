@@ -25,4 +25,3 @@ export interface RegisterResult {
   user: SafeUser;
   verificationLink?: string;
 }
-
