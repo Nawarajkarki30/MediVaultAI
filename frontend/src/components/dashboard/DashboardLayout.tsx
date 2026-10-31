@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { DashboardSidebar } from './DashboardSidebar';
 import { DashboardHeader } from './DashboardHeader';
 import { MobileBottomNav } from './MobileBottomNav';
@@ -15,6 +16,9 @@ interface DashboardLayoutProps {
 }
 
 export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboard, children }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const {
     language,
     setLanguage,
@@ -36,17 +40,55 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboard, chi
     setComingSoonFeature,
   } = dashboard;
 
+  // Sync activeNavTab with current route
+  useEffect(() => {
+    if (location.pathname.startsWith('/patient/vault')) {
+      if (activeNavTab !== 'vault') {
+        setActiveNavTab('vault');
+      }
+    } else if (location.pathname === '/patient/dashboard') {
+      if (activeNavTab !== 'dashboard') {
+        setActiveNavTab('dashboard');
+      }
+    }
+  }, [location.pathname, activeNavTab, setActiveNavTab]);
+
   const handleNavSelect = (tab: typeof activeNavTab) => {
     setActiveNavTab(tab);
-    if (tab === 'vault') {
-      const el = document.getElementById('recent-reports-section');
-      el?.scrollIntoView({ behavior: 'smooth' });
+    if (tab === 'dashboard') {
+      if (location.pathname !== '/patient/dashboard') {
+        navigate('/patient/dashboard');
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    } else if (tab === 'vault') {
+      if (location.pathname !== '/patient/vault') {
+        navigate('/patient/vault');
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     } else if (tab === 'ai') {
-      const el = document.getElementById('ai-preview-section');
-      el?.scrollIntoView({ behavior: 'smooth' });
+      if (location.pathname !== '/patient/dashboard') {
+        navigate('/patient/dashboard');
+        setTimeout(() => {
+          const el = document.getElementById('ai-preview-section');
+          el?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else {
+        const el = document.getElementById('ai-preview-section');
+        el?.scrollIntoView({ behavior: 'smooth' });
+      }
     } else if (tab === 'family') {
-      const el = document.getElementById('family-sharing-section');
-      el?.scrollIntoView({ behavior: 'smooth' });
+      if (location.pathname !== '/patient/dashboard') {
+        navigate('/patient/dashboard');
+        setTimeout(() => {
+          const el = document.getElementById('family-sharing-section');
+          el?.scrollIntoView({ behavior: 'smooth' });
+        }, 100);
+      } else {
+        const el = document.getElementById('family-sharing-section');
+        el?.scrollIntoView({ behavior: 'smooth' });
+      }
     } else if (tab === 'caregivers') {
       setComingSoonFeature(t.navCaregivers);
     } else if (tab === 'settings') {
@@ -56,11 +98,15 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboard, chi
     }
   };
 
+  const computedActiveTab = location.pathname.startsWith('/patient/vault')
+    ? 'vault'
+    : activeNavTab;
+
   return (
     <div className="min-h-screen bg-brand-bg flex text-slate-800 antialiased selection:bg-brand-500 selection:text-white">
       {/* Desktop Sidebar (Fixed on desktop >= lg) */}
       <DashboardSidebar
-        activeTab={activeNavTab}
+        activeTab={computedActiveTab}
         onSelectTab={handleNavSelect}
         language={language}
         unreadCount={unreadNotificationsCount}
@@ -86,7 +132,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboard, chi
           <div className="flex items-center gap-1.5">
             <ShieldCheck className="w-3.5 h-3.5 text-brand-500 shrink-0" />
             <span className="font-semibold">
-              Authenticated Patient Vault Environment (Phase 2B)
+              {location.pathname.startsWith('/patient/vault')
+                ? 'Personal Health Vault Environment (Phase 2C.1)'
+                : 'Authenticated Patient Vault Environment (Phase 2B)'}
             </span>
             <span className="hidden sm:inline text-brand-muted">
               — Sample medical records & statistics shown for interface verification.
@@ -97,14 +145,14 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({ dashboard, chi
           </span>
         </div>
 
-        {/* Scrollable Page Body (pb-24 on mobile to prevent MobileBottomNav overlap) */}
+        {/* Scrollable Page Body (pb-28 on mobile to prevent MobileBottomNav overlap) */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-28 lg:pb-12 max-w-7xl w-full mx-auto space-y-6 sm:space-y-8">
           {children}
         </main>
 
         {/* Mobile Bottom Navigation (< lg) */}
         <MobileBottomNav
-          activeTab={activeNavTab}
+          activeTab={computedActiveTab}
           onSelectTab={handleNavSelect}
           language={language}
           onLanguageChange={setLanguage}

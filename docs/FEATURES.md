@@ -99,7 +99,7 @@ This document provides a clear breakdown of features currently implemented in **
 
 ---
 
-## 3. Phase 2B: Complete Patient Dashboard Frontend (Current Phase)
+## 3. Phase 2B: Complete Patient Dashboard Frontend (Completed)
 
 ### ✅ Implemented Capabilities
 
@@ -124,26 +124,65 @@ This document provides a clear breakdown of features currently implemented in **
 
 ---
 
-## 4. Planned Phase 2C: Document Processing & AI Engine
+## 4. Phase 2C.1: Personal Health Vault Frontend (Current Phase - Completed)
 
-These features are planned and architected, but **not yet active** in Phase 2B:
+### ✅ Implemented Capabilities
 
-- **Medical Document Ingestion & Storage:**
-  - Multi-file drag-and-drop uploader supporting PDF, JPEG, PNG, HEIC.
-  - Virus scanning and metadata sanitization.
+- **Wireframe Fidelity & Vault Architecture (`/patient/vault`):**
+  - Header with security badge (`Private. Organized. In Your Control.`), bilingual title/subtitle, upload CTA, and dismissible demo disclaimer banner.
+  - 7 category filter chips with live document count badges matching wireframe counts: `All (12)`, `Laboratory Reports (4)`, `Prescriptions (2)`, `Imaging Reports (2)`, `Discharge Summaries (2)`, `Consultation Notes (1)`, `Other (1)`.
+  - Comprehensive filter toolbar: live multi-attribute search (title, facility, keywords), file type dropdown (`PDF`, `JPG / JPEG`, `PNG`), processing status dropdown (`Uploaded`, `Pending Review`, `Reviewed`, `Extraction Not Available`), and sorting options.
+  - Responsive Grid and List/Table view presentation toggle with saved session view preference.
+  - Mobile filter drawer slide-up sheet with complete filter options and date range selectors.
+- **High-Fidelity Document Presentation & Visual Emblems:**
+  - Custom SVG radiological and clinical thumbnails: PA Chest X-Ray radiograph, Axial Brain MRI scan, tabular lab reports, Rx emblem.
+  - Standardized clinical status badges (`Reviewed`, `Pending Review`, `Uploaded`, `Extraction Not Available`).
+- **Interactive Document Action Menu & Modals:**
+  - `View Document`: Dedicated routing to document detail view.
+  - `Edit Title (Demo)`: In-memory document renaming modal.
+  - `Change Category (Demo)`: Category reclassification modal with dynamic count updates.
+  - `Download`: Client-side synthetic clinical report file download.
+  - `Delete Document (Demo)`: Destructive confirmation modal with empty state fallback and 1-click demo restoration button.
+  - `Share with Family` & `Explain with AI`: Accessible "Coming Soon" roadmap modals.
+- **Client-Side Upload Prototype Modal:**
+  - Drag-and-drop canvas with file input fallback.
+  - Client-side validation: format check (`.pdf`, `.png`, `.jpg`, `.jpeg`) and $10\text{ MB}$ size enforcement.
+  - Selected file card with computed file size and remove action.
+  - Explicit prototype notices confirming zero server transmission or persistence in this phase.
+- **Document Detail View (`/patient/vault/:documentId`):**
+  - Simulated interactive PDF/image viewer with zoom, print, download, and multi-page layout.
+  - Realistic medical findings preview: Analyte lab tables, radiographic annotations, and Rx dosage regimens.
+  - Honest unavailable state for handwritten documents requiring clinical transcription.
+  - Comprehensive metadata grid (facility, physician, document date, added date, size, type).
+  - Highlighted extracted clinical findings callout in English and Nepali.
+  - Patient personal notes textarea with session save and confirmation feedback.
+- **Privacy Safeguards Panel:**
+  - Dedicated architecture callout explaining Private by Default, Granular Sharing, and Revocable Access.
+
+---
+
+## 5. Planned Phase 2C.2 & 2D: Document Storage & AI Extraction Engine
+
+These features are planned and architected, but **not yet active** in Phase 2C.1:
+
+- **Medical Document Ingestion & Storage (Phase 2C.2):**
+  - Prisma database schema for `MedicalDocument`, `DocumentCategory`, and `DocumentNote`.
+  - Multi-file multipart uploader supporting PDF, JPEG, PNG, HEIC.
+  - Virus scanning, metadata sanitization, and MIME sniffing.
   - S3-compatible cloud object storage with server-side encryption (SSE-S3 or SSE-KMS).
-- **OCR Extraction Pipeline:**
-  - High-accuracy optical character recognition on scanned prescriptions and lab slips.
+- **OCR Extraction & VLM Pipeline (Phase 2D):**
+  - High-accuracy optical character recognition and visual language model extraction.
+  - Research evaluation target: $\ge 95\%$ verified field extraction accuracy on supported structured report types.
   - Tabular laboratory result parsing (analyte name, observed value, unit, reference range).
 - **Bilingual Generative AI Explanation Engine:**
   - Medically guardrailed prompts converting clinical terminology into readable grade-6 explanations.
   - Native dual-language output: English and Nepali (देवनागरी).
   - Highlighting out-of-range lab markers with neutral, non-alarmist summaries.
-  - Prominent disclaimer injection on every generated summary.
+  - Mandatory clinical disclaimer injection on every generated summary.
 
 ---
 
-## 3. Planned Phase 3: Family Sharing & Caregiver Network
+## 6. Planned Phase 3: Family Sharing & Caregiver Network
 
 - **Family Permission Center:**
   - Inviting family members via secure invitation tokens.

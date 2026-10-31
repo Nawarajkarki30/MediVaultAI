@@ -8,6 +8,8 @@ import { VerifyEmailPage } from './pages/auth/VerifyEmailPage';
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { PatientDashboardPage } from './pages/patient/PatientDashboardPage';
+import { PatientVaultPage } from './pages/patient/PatientVaultPage';
+import { PatientDocumentDetailPage } from './pages/patient/PatientDocumentDetailPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -32,6 +34,24 @@ export const App: React.FC = () => {
             element={
               <ProtectedRoute>
                 <PatientDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Personal Health Vault (Phase 2C.1) */}
+          <Route
+            path="/patient/vault"
+            element={
+              <ProtectedRoute>
+                <PatientVaultPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/patient/vault/:documentId"
+            element={
+              <ProtectedRoute>
+                <PatientDocumentDetailPage />
               </ProtectedRoute>
             }
           />

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDashboardData } from '../../hooks/useDashboardData';
 import { DashboardLayout } from '../../components/dashboard/DashboardLayout';
 import { WelcomeHero } from '../../components/dashboard/WelcomeHero';
@@ -9,6 +10,7 @@ import { FamilySharingCard } from '../../components/dashboard/FamilySharingCard'
 import { QuickActions } from '../../components/dashboard/QuickActions';
 
 export const PatientDashboardPage: React.FC = () => {
+  const navigate = useNavigate();
   const dashboard = useDashboardData();
 
   const {
@@ -42,14 +44,14 @@ export const PatientDashboardPage: React.FC = () => {
         language={language}
         greetingKey={getTimeGreetingKey()}
         onUploadClick={() => setIsUploadModalOpen(true)}
-        onExploreVaultClick={() => scrollToSection('recent-reports-section')}
+        onExploreVaultClick={() => navigate('/patient/vault')}
       />
 
       {/* 2. Summary Metric Cards */}
       <SummaryCards
         stats={stats}
         language={language}
-        onReportsCardClick={() => scrollToSection('recent-reports-section')}
+        onReportsCardClick={() => navigate('/patient/vault')}
         onFamilyCardClick={() => scrollToSection('family-sharing-section')}
         onAICardClick={() => scrollToSection('ai-preview-section')}
       />
@@ -64,7 +66,7 @@ export const PatientDashboardPage: React.FC = () => {
             onSelectCategory={setSelectedCategory}
             language={language}
             onViewReport={(report) => setSelectedReport(report)}
-            onViewAllClick={() => setSelectedCategory('all')}
+            onViewAllClick={() => navigate('/patient/vault')}
             onResetFilters={() => {
               setSelectedCategory('all');
               setSearchQuery('');
@@ -106,7 +108,7 @@ export const PatientDashboardPage: React.FC = () => {
           <QuickActions
             language={language}
             onUploadClick={() => setIsUploadModalOpen(true)}
-            onViewReportsClick={() => scrollToSection('recent-reports-section')}
+            onViewReportsClick={() => navigate('/patient/vault')}
             onAIExplanationClick={() => scrollToSection('ai-preview-section')}
             onManageFamilyClick={() => setIsInviteModalOpen(true)}
             onFindCaregiverClick={() => setComingSoonFeature(t.navCaregivers)}
